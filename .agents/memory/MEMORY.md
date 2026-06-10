@@ -1,0 +1,1 @@
+- [Cibersec app structure](cibersec-app.md) — frontend-only CTF course app; admin auth via sessionStorage; all content in static data files

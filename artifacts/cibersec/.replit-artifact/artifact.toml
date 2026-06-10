@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "Intensivo Olímpico de Cibersegurança"
+version = "1.0.0"
+id = "artifacts/cibersec"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 22330
+
+[services.development]
+run = "pnpm --filter @workspace/cibersec run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/cibersec", "run", "build" ]
+publicDir = "artifacts/cibersec/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "22330"
+BASE_PATH = "/"

@@ -1,0 +1,664 @@
+Você atuará como um desenvolvedor full-stack sênior, designer de interface minimalista e instrutor de elite em cibersegurança para olimpíadas/CTFs.
+
+Crie um sistema web completo chamado **Intensivo Olímpico de Cibersegurança**, com foco em estudo teórico, roteiro de aula para professor e prática em laboratório autorizado.
+
+O sistema deve ser gerado como uma pasta completa, pronta para rodar localmente, contendo:
+
+* `index.html`
+* `admin.html` ou rota `/admin`
+* `assets/css/styles.css`
+* `assets/js/app.js`
+* `assets/js/data.js`
+* `assets/js/timers.js`
+* `assets/js/admin.js`
+* `server.js`
+* `README.md`
+* qualquer outro arquivo necessário
+
+Use HTML, CSS, JavaScript puro e Node.js puro ou Express. Pode usar outras tecnologias se forem realmente úteis, mas o projeto deve continuar simples de rodar.
+
+## Objetivo geral
+
+Criar um site que funcione como uma apresentação de slides interativa e curso intensivo de cibersegurança, dividido em:
+
+* Dia 1: Fundamentos e prática fácil — 12h
+* Dia 2: Conteúdo intermediário e prática média — 12h
+* Dia 3: Conteúdo avançado e prática difícil — 12h
+* Dia 4: Revisão final, cheat sheets e prática extra
+
+O sistema precisa ter dois modos:
+
+1. **Modo aluno**
+
+   * Acessível pela rota `/`
+   * Mostra apenas o conteúdo do curso, teoria, comandos, exercícios e labs
+   * Não deve mostrar nenhum roteiro de professor, gabarito, resolução detalhada ou respostas completas
+
+2. **Modo professor**
+
+   * Acessível apenas pela rota `/admin`
+   * Protegido por senha simples: `123456`
+   * Após login, mostra o manual do professor, roteiro de aula, respostas orientadas e resoluções didáticas das máquinas/labs
+   * O conteúdo do professor deve ficar totalmente escondido do modo aluno
+
+## Design obrigatório
+
+Crie um design escuro, minimalista, sério e profissional.
+
+Evite:
+
+* visual exageradamente hacker
+* neon demais
+* muitos quadrados/cards
+* efeitos excessivos
+* cara de template gerado por IA
+* poluição visual
+
+Use:
+
+* fundo escuro simples
+* tipografia limpa
+* espaçamento confortável
+* poucos elementos por tela
+* layout focado em leitura
+* destaque discreto para comandos
+* terminal visual apenas quando necessário
+
+O terminal embutido deve ter aparência simples:
+
+```css
+font-family: monospace;
+background: #000;
+color: #d6f5d6;
+```
+
+## Estrutura do modo aluno
+
+O modo aluno deve ter:
+
+* Cabeçalho simples com título do curso
+* Navegação por dias
+* Barra de progresso
+* Botões “Anterior” e “Próximo”
+* Atalhos de teclado: seta esquerda e seta direita
+* Busca por tópico
+* Slides ou seções em tela cheia/parcial
+* Conteúdo responsivo, mas otimizado para desktop
+
+## Conteúdo obrigatório do curso
+
+O curso deve cobrir profundamente estes assuntos:
+
+### Fundamentos
+
+* Redes TCP/IP
+* Portas e serviços comuns
+* DNS
+* HTTP/HTTPS
+* SSH
+* FTP
+* SMB
+* RDP
+* ICMP
+* Leitura básica de tráfego
+* Diferença entre tráfego normal e suspeito
+
+### Linux
+
+* Estrutura do sistema
+* Comandos básicos
+* Permissões
+* Usuários e grupos
+* Processos
+* Serviços
+* Logs Linux
+* `/var/log/auth.log`
+* `/var/log/syslog`
+* `journalctl`
+* `.bash_history`
+* cron jobs
+* arquivos ocultos
+* SSH keys
+* enumeração local
+
+### Windows
+
+* Event Viewer
+* Logs Security, System, Application
+* PowerShell logs
+* Windows Defender logs
+* Sysmon
+* Event IDs importantes:
+
+  * 4624
+  * 4625
+  * 4634
+  * 4648
+  * 4672
+  * 4688
+  * 4697
+  * 4720
+  * 4722
+  * 4728
+  * 4732
+  * 1102
+* Processos
+* Serviços
+* Tarefas agendadas
+* Usuários e grupos
+* Registro do Windows
+
+### Wazuh / Blue Team
+
+* O que é SIEM
+* O que é XDR
+* Wazuh manager
+* Wazuh agent
+* Alerts
+* Rules
+* Decoders
+* Rule ID
+* Rule level
+* Agentes Windows e Linux
+* FIM — File Integrity Monitoring
+* SCA — Security Configuration Assessment
+* Como investigar alerta
+* Como correlacionar eventos
+* Como identificar IP, usuário, host, processo e arquivo suspeito
+
+### MITRE ATT&CK
+
+* Initial Access
+* Execution
+* Persistence
+* Privilege Escalation
+* Defense Evasion
+* Credential Access
+* Discovery
+* Lateral Movement
+* Command and Control
+* Exfiltration
+* Como mapear evidências em técnicas MITRE
+
+### Red Team / CTF
+
+* Reconhecimento
+* Enumeração
+* Nmap
+* Gobuster
+* ffuf
+* curl
+* Burp Suite
+* Web exploitation básico
+* SQL Injection conceitual
+* XSS conceitual
+* LFI/RFI
+* Command Injection
+* Upload inseguro
+* IDOR
+* Directory Traversal
+* Brute force apenas em laboratório autorizado
+* Privilege escalation Linux
+* Privilege escalation Windows
+
+### Active Directory básico
+
+* Domínio
+* Usuário
+* Grupo
+* Domain Admin
+* Kerberos
+* NTLM
+* LDAP
+* SMB
+* BloodHound
+* AS-REP Roasting
+* Kerberoasting
+* Pass-the-Hash conceitual
+* Enumeração AD
+
+### Forense de disco
+
+* Imagem de disco
+* Hash
+* Cadeia de custódia
+* `.dd`
+* `.E01`
+* Arquivos deletados
+* Metadados
+* Timestamps
+* Timeline
+* Autopsy
+* Sleuth Kit
+* FTK Imager
+* Artefatos Windows:
+
+  * `$MFT`
+  * `$Recycle.Bin`
+  * Prefetch
+  * AmCache
+  * ShimCache
+  * LNK files
+  * Jump Lists
+  * Browser History
+  * Downloads
+  * Registry hives
+* Artefatos Linux:
+
+  * `/etc/passwd`
+  * `/etc/shadow`
+  * `/home/user/.bash_history`
+  * `/var/log`
+  * cron
+  * `.ssh/authorized_keys`
+
+### Forense de memória
+
+* O que é dump de memória
+* Volatility 3
+* Processos
+* Árvore de processos
+* Linha de comando dos processos
+* Conexões de rede
+* DLLs
+* Handles
+* Arquivos abertos
+* Processos escondidos
+* Injeção de código
+* Strings em memória
+* Identificação de malware em RAM
+
+### PCAP / Wireshark
+
+* Abrir `.pcap`
+* Filtros básicos
+* `http`
+* `dns`
+* `ftp`
+* `smb`
+* `ip.addr ==`
+* `tcp.stream eq`
+* Follow TCP Stream
+* Export HTTP Objects
+* Identificação de credenciais em texto claro
+* Identificação de IP atacante
+* Identificação de domínio suspeito
+
+### Malware básico
+
+* Análise estática
+* Análise comportamental
+* `file`
+* `strings`
+* hash
+* VirusTotal apenas como consulta externa opcional
+* PEStudio
+* Detect It Easy
+* Process Monitor
+* Process Explorer
+* Autoruns
+* Indicadores de comprometimento
+
+### Puzzles e criptografia de CTF
+
+* Base64
+* Base32
+* Hex
+* Binary
+* ASCII
+* URL Encoding
+* ROT13
+* Caesar
+* XOR básico
+* Morse
+* Bacon cipher
+* Hashes MD5/SHA1/SHA256
+* John the Ripper
+* Hashcat
+* JWT básico
+* CyberChef
+* Esteganografia:
+
+  * exiftool
+  * steghide
+  * zsteg
+  * binwalk
+  * foremost
+  * Audacity
+  * Sonic Visualiser
+
+## Estrutura de cada tópico
+
+Para cada tópico, criar múltiplas telas/slides contendo:
+
+1. Explicação teórica
+
+   * O que é
+   * Como funciona
+   * Por que importa em olimpíada/CTF
+   * Como aparece em prova
+
+2. Comandos práticos
+
+   * Sintaxe correta
+   * Opções importantes
+   * Exemplos de uso
+
+3. Terminal realista
+
+   * Prompt
+   * Comando
+   * Saída esperada
+   * Erro comum
+   * Correção
+
+4. Dicas de prova
+
+   * Pegadinhas comuns
+   * O que decorar
+   * Como ganhar tempo
+   * Como não se perder
+
+## Laboratórios Hack The Box
+
+Ao final de cada dia, incluir laboratórios Hack The Box.
+
+Use apenas máquinas de ambiente autorizado/CTF. Priorize máquinas aposentadas, clássicas ou amplamente documentadas.
+
+### Dia 1 — fáceis
+
+Incluir 6 máquinas fáceis:
+
+* 3 sem limite de tempo
+* 3 com limite de tempo
+
+Sugestões:
+
+* Cap
+* Nibbles
+* Jerry
+* Devel
+* Blue
+* Lame
+
+### Dia 2 — médias
+
+Incluir 6 máquinas médias:
+
+* 3 sem limite de tempo
+* 3 com limite de tempo
+
+Sugestões:
+
+* Cronos
+* Monteverde
+* Cascade
+* Forest
+* Sauna
+* Active
+
+### Dia 3 — difíceis
+
+Incluir 6 máquinas difíceis:
+
+* 3 sem limite de tempo
+* 3 com limite de tempo
+
+Sugestões:
+
+* Blackfield
+* Sizzle
+* Reel2
+* Multimaster
+* Querier
+* Mantis
+
+### Dia 4 — extras com tempo
+
+Incluir várias máquinas extras de níveis variados, todas com cronômetro:
+
+* fáceis
+* médias
+* difíceis
+* algumas insanas, se fizer sentido
+
+Para cada máquina no modo aluno, mostrar:
+
+* Nome
+* Dificuldade
+* Tempo sugerido
+* Breve descrição
+* Tópicos reforçados
+* Dica inicial sem spoiler
+* Cronômetro se for lab com tempo
+
+## Cronômetro funcional
+
+Criar cronômetro em JavaScript puro.
+
+Para labs com limite:
+
+* Campo para definir tempo
+* Botão iniciar
+* Botão pausar
+* Botão resetar
+* Alerta visual quando chegar a zero
+* Alerta sonoro simples usando Web Audio API ou beep nativo
+
+Para labs sem limite:
+
+* Mostrar “Sem limite de tempo”
+* Opcionalmente cronômetro progressivo para controle pessoal
+
+## Modo professor /admin
+
+A área `/admin` deve conter:
+
+* Login com senha `123456`
+* Manual do professor
+* Roteiro de aula por dia
+* Objetivos de aprendizagem
+* Tempo sugerido por bloco
+* Perguntas para fazer aos alunos
+* Respostas esperadas
+* Critérios de avaliação
+* Como conduzir os labs
+* Como corrigir erros comuns
+* Como explicar cada técnica sem entregar tudo imediatamente
+
+## Resoluções no modo professor
+
+Para cada máquina/lab, criar um guia de professor com resolução didática.
+
+Importante:
+
+* Não copiar textos de writeups de terceiros
+* Não inventar informações
+* Quando usar informação de writeup público, reescrever com palavras próprias
+* Incluir fontes/referências no final do guia
+* Preferir páginas oficiais do Hack The Box, documentação oficial e writeups públicos confiáveis
+* Não incluir hash literal de flags caso isso viole regras da plataforma; em vez disso, indicar exatamente onde encontrar `user.txt` e `root.txt`
+
+Para cada etapa da resolução, incluir:
+
+1. Objetivo da etapa
+2. Comando usado
+3. Explicação do comando
+4. Explicação de cada parte do comando
+5. Saída esperada
+6. Como interpretar a saída
+7. Erros comuns
+8. Como corrigir esses erros
+9. Por que essa etapa vem antes da próxima
+10. Evidência que confirma que o aluno está no caminho certo
+
+Exemplo de formato para comandos:
+
+```bash
+nmap -sC -sV -oN scan.txt 10.10.10.245
+```
+
+Explicar:
+
+* `nmap`: ferramenta de varredura de portas e serviços
+* `-sC`: executa scripts padrão seguros do Nmap
+* `-sV`: tenta identificar versão dos serviços
+* `-oN scan.txt`: salva a saída em formato normal no arquivo `scan.txt`
+* `10.10.10.245`: IP alvo da máquina no laboratório
+
+Depois mostrar:
+
+* O que procurar na saída
+* Como identificar portas abertas
+* Como decidir o próximo passo
+* Qual erro comum pode acontecer
+* Como corrigir
+
+Exemplo de erro:
+
+```bash
+Note: Host seems down. If it is really up, but blocking our ping probes, try -Pn
+```
+
+Explicar:
+
+* Esse erro indica que o Nmap não recebeu resposta de ping
+* Em HTB isso pode acontecer por firewall ou VPN
+* Corrigir usando:
+
+```bash
+nmap -Pn -sC -sV -oN scan.txt 10.10.10.245
+```
+
+## Profundidade esperada nas resoluções
+
+As resoluções devem ser reais e úteis para o professor conduzir a aula, incluindo:
+
+* caminho de enumeração
+* serviço vulnerável
+* raciocínio para exploração
+* como obter acesso inicial
+* como estabilizar shell, quando aplicável
+* como buscar `user.txt`
+* como enumerar privilégio
+* vetor de privilege escalation
+* como obter root/administrator
+* como buscar `root.txt`
+* como mapear a máquina para MITRE ATT&CK
+* quais evidências um aluno deve anotar no relatório
+
+Não transformar isso em conteúdo para ataque real fora de laboratório. O texto deve deixar claro que tudo é apenas para CTF, Hack The Box, ambiente próprio ou autorizado.
+
+## Roteiro de aula para professor
+
+Criar uma seção por dia com:
+
+### Dia 1
+
+* Fundamentos
+* Redes
+* Linux
+* Windows básico
+* Nmap
+* Wireshark
+* Web básico
+* Labs fáceis
+
+### Dia 2
+
+* Wazuh
+* Blue Team
+* Logs
+* Sysmon
+* Forense de disco
+* PCAP intermediário
+* AD básico
+* Labs médios
+
+### Dia 3
+
+* Forense de memória
+* Volatility
+* Malware básico
+* AD intermediário
+* Privilege escalation
+* Correlação MITRE
+* Labs difíceis
+
+### Dia 4
+
+* Revisão geral
+* Simulados com tempo
+* Checklist final
+* Erros fatais
+* Como escrever relatório
+* Como pensar sob pressão
+
+## Checklist final no modo aluno
+
+Criar uma seção de revisão com perguntas:
+
+* Qual IP atacou?
+* Qual máquina foi comprometida?
+* Qual usuário foi usado?
+* Qual porta foi explorada?
+* Qual processo suspeito rodou?
+* Qual arquivo foi criado/modificado?
+* Qual comando foi executado?
+* Qual horário do ataque?
+* Qual persistência foi criada?
+* Qual log comprova isso?
+* Qual Event ID comprova isso?
+* Qual alerta do Wazuh comprova isso?
+* Qual técnica MITRE se encaixa?
+* Qual artefato de disco confirma?
+* Qual artefato de memória confirma?
+
+## README
+
+O `README.md` deve explicar:
+
+* Como instalar
+* Como rodar
+* Como acessar modo aluno
+* Como acessar `/admin`
+* Senha do admin
+* Estrutura de pastas
+* Como editar conteúdo
+* Como adicionar novos labs
+* Como alterar cronômetros
+* Observação ética: uso apenas em CTF/laboratório autorizado
+
+Comandos esperados:
+
+```bash
+npm install
+npm start
+```
+
+ou, se usar Node puro sem dependências:
+
+```bash
+node server.js
+```
+
+## Segurança e ética
+
+Adicionar aviso no sistema:
+
+Este material é destinado exclusivamente a estudo, CTFs, Hack The Box, laboratórios próprios e ambientes com autorização explícita. Não deve ser usado contra sistemas reais sem permissão.
+
+## Resultado final esperado
+
+Entregue:
+
+1. Código completo de todos os arquivos
+2. Estrutura de pastas
+3. Explicação de como rodar
+4. Conteúdo já preenchido
+5. Modo aluno funcionando
+6. Modo professor escondido e acessível apenas por `/admin`
+7. Cronômetros funcionais
+8. Tema escuro minimalista
+9. Conteúdo teórico bem mais forte que prático no modo aluno
+10. Resoluções didáticas e detalhadas no modo professor, com explicação de cada comando e cada opção
