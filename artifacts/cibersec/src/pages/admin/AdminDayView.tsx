@@ -4,6 +4,321 @@ import { LogOut, ChevronLeft } from "lucide-react";
 import { teacherNotes, labSolutions } from "@/data/adminData";
 import TerminalBlock from "@/components/TerminalBlock";
 
+type CommandPart = {
+  term: string;
+  description: string;
+};
+
+const commandDescriptions: Record<string, string> = {
+  nmap: "ferramenta usada para descobrir portas, serviços, versões e pistas de enumeração em um alvo autorizado.",
+  curl: "cliente HTTP usado para ver a resposta bruta de uma página, endpoint ou arquivo sem depender do navegador.",
+  grep: "filtra texto por padrão; aqui reduz a saída para linhas que contenham o termo procurado.",
+  gobuster: "ferramenta de enumeração por wordlist, usada para descobrir diretórios, arquivos ou vhosts.",
+  smbclient: "cliente SMB que lista shares, acessa pastas compartilhadas e testa sessão nula ou credenciais.",
+  "gpp-decrypt": "decifra o valor cpassword de Group Policy Preferences usando a chave pública conhecida da Microsoft.",
+  "GetUserSPNs.py": "script do Impacket que enumera contas com SPN e pode solicitar tickets para Kerberoasting.",
+  "GetNPUsers.py": "script do Impacket que testa contas sem pré-autenticação Kerberos e coleta hash AS-REP quando possível.",
+  hashcat: "ferramenta de quebra offline de hashes; o modo escolhido define o tipo de hash analisado.",
+  "psexec.py": "script do Impacket que usa credenciais válidas para executar comandos remotamente via SMB/RPC.",
+  rpcclient: "cliente RPC para consultar informações de domínio, usuários e grupos em serviços Windows/Samba.",
+  "bloodhound-python": "coletor que consulta o Active Directory e gera dados para análise de caminhos no BloodHound.",
+  net: "ferramenta Windows/Samba para administrar usuários, grupos, senhas e recursos de domínio.",
+  pypykatz: "ferramenta que analisa dumps do LSASS e extrai credenciais, hashes ou tickets quando presentes.",
+  diskshadow: "utilitário Windows para criar e manipular cópias de sombra de volumes.",
+  robocopy: "ferramenta robusta de cópia no Windows; com modo backup consegue copiar arquivos protegidos quando a permissão existe.",
+  "secretsdump.py": "script do Impacket que extrai hashes de credenciais de sistemas Windows, online ou offline.",
+  msfvenom: "gerador de payloads do Metasploit; aqui cria um arquivo implantável para obter shell no lab.",
+  ssh: "cliente de acesso remoto seguro; usa usuário, host e credenciais para abrir uma sessão shell.",
+  sudo: "executa um comando com privilégios elevados quando a política permite.",
+  "python3.8": "interpretador Python específico; nesta etapa é relevante porque possui capability perigosa.",
+};
+
+const optionDescriptions: Record<string, string> = {
+  "-sC": "executa os scripts padrão do Nmap, equivalentes a --script=default; ajuda a coletar banners e enumeração inicial segura para CTF.",
+  "-sV": "tenta identificar nome e versão dos serviços nas portas abertas.",
+  "-oN": "salva a saída normal em um arquivo, preservando evidência para relatório e revisão.",
+  "-Pn": "pula a descoberta de host por ping e trata o alvo como ativo; útil quando ICMP ou probes iniciais são bloqueados.",
+  "-p": "define a porta ou lista de portas que serão analisadas.",
+  "-p-": "manda o Nmap varrer todas as portas TCP, de 1 a 65535.",
+  "-p:payload": "no msfvenom, escolhe o payload que será colocado no arquivo gerado.",
+  "--min-rate": "define uma taxa mínima de envio de pacotes para acelerar varreduras em laboratório.",
+  "-L": "no smbclient, lista shares disponíveis no servidor em vez de abrir uma share específica.",
+  "-N": "tenta autenticar sem senha; usado para testar acesso anônimo ou sessão nula.",
+  "-U": "define o usuário para autenticação RPC/SMB; string vazia indica tentativa sem usuário real.",
+  "-s": "no curl, modo silencioso; remove barra de progresso e deixa a saída mais limpa para pipes.",
+  "-i": "no grep, ignora diferença entre maiúsculas e minúsculas ao procurar o termo.",
+  "-u": "define usuário para autenticação em ferramentas como bloodhound-python.",
+  "-u:url": "no gobuster, define a URL base que será enumerada.",
+  "-p:password": "define senha em ferramentas que aceitam credenciais na linha de comando.",
+  "-p:ports": "define porta ou lista de portas a escanear no Nmap.",
+  "-w": "define a wordlist usada para testar caminhos, nomes ou senhas.",
+  "-d": "define o domínio Active Directory consultado.",
+  "-ns": "define o servidor DNS que o coletor deve usar para resolver o domínio.",
+  "-c": "define quais coletores do BloodHound serão executados; All coleta o conjunto amplo.",
+  "-c:python": "no Python, executa o código passado como string logo em seguida.",
+  "-request": "solicita tickets Kerberos para contas com SPN, gerando material para Kerberoasting.",
+  "-outputfile": "salva o resultado em um arquivo indicado, útil para passar para hashcat ou documentar evidência.",
+  "-usersfile": "informa uma lista de usuários para testar em massa.",
+  "-no-pass": "tenta a operação sem senha, comum em AS-REP Roasting para contas sem pré-autenticação.",
+  "-m": "seleciona o modo do hashcat, ou seja, o tipo exato de hash que será quebrado.",
+  "-ntds": "aponta o arquivo ntds.dit offline que contém o banco de credenciais do AD.",
+  "-system": "aponta a hive SYSTEM usada para derivar chaves necessárias ao dump offline.",
+  "-windows-auth": "usa autenticação integrada do Windows em vez de autenticação SQL local.",
+  "-f": "define o formato do arquivo gerado pelo msfvenom.",
+  "-o": "define o arquivo de saída gerado por uma ferramenta.",
+  "-a": "em ferramentas de log, geralmente adiciona ao arquivo existente em vez de sobrescrever.",
+  "/add": "adiciona o usuário ou objeto ao grupo informado.",
+  "/domain": "aplica a operação no domínio, não apenas na máquina local.",
+  "/user": "informa a credencial usada para autenticar a operação.",
+  "/S": "define o servidor ou controlador de domínio contra o qual o comando será executado.",
+  "/s": "no diskshadow, executa um script de comandos a partir de um arquivo.",
+  "/b": "no robocopy, usa modo backup; requer privilégio apropriado e permite copiar arquivos protegidos.",
+};
+
+const valueDescriptions: Record<string, string> = {
+  "scan.txt": "arquivo onde o resultado do scan inicial será salvo.",
+  "kerb.txt": "arquivo que receberá o hash/ticket coletado para análise offline.",
+  "asrep.txt": "arquivo onde os hashes AS-REP coletados serão salvos.",
+  "hash.txt": "arquivo local contendo o hash que será quebrado.",
+  "rockyou.txt": "wordlist usada para tentar senhas comuns em hashes de laboratório.",
+  "/usr/share/wordlists/rockyou.txt": "caminho comum da wordlist rockyou em distribuições de pentest.",
+  "users.txt": "lista de usuários que será testada pela ferramenta.",
+  "common.txt": "wordlist de caminhos comuns usada para enumeração web.",
+  "13100": "modo hashcat para Kerberos 5 TGS-REP etype 23, usado em Kerberoasting.",
+  "18200": "modo hashcat para Kerberos 5 AS-REP etype 23, usado em AS-REP Roasting.",
+  "8080": "porta TCP alvo; neste lab hospeda o Tomcat Manager.",
+  "4444": "porta local onde o listener aguardará a shell reversa.",
+  "All": "coleta ampla do BloodHound: usuários, grupos, sessões, ACLs e relações relevantes.",
+  "LOCAL": "indica ao secretsdump que o dump será processado localmente, a partir dos arquivos informados.",
+  "shadow.txt": "script de instruções que o diskshadow vai executar.",
+  "ntds.dit": "banco do Active Directory com objetos do domínio e material de credenciais.",
+  "SYSTEM": "hive do registro Windows necessária para extrair chaves usadas na leitura do ntds.dit.",
+  "shell.war": "arquivo WAR gerado para deploy no Tomcat.",
+  "java/jsp_shell_reverse_tcp": "payload JSP Java que conecta de volta para o listener do operador no lab.",
+  "war": "formato de pacote de aplicação Java aceito pelo Tomcat Manager.",
+};
+
+const positionalDescriptions: Record<string, Record<number, string>> = {
+  nmap: {
+    1: "alvo autorizado do scan; pode ser IP, hostname ou faixa.",
+  },
+  curl: {
+    1: "URL consultada; a resposta ajuda a confirmar conteúdo, endpoint ou comportamento da aplicação.",
+  },
+  grep: {
+    1: "termo ou expressão usada para filtrar a saída recebida.",
+  },
+  gobuster: {
+    1: "modo de enumeração; dir procura diretórios e arquivos em uma aplicação web.",
+  },
+  smbclient: {
+    1: "servidor ou share SMB que será listado ou acessado.",
+  },
+  "gpp-decrypt": {
+    1: "valor cpassword extraído do Groups.xml para ser decifrado.",
+  },
+  "GetUserSPNs.py": {
+    1: "domínio e credencial usados para consultar SPNs e solicitar tickets.",
+  },
+  "GetNPUsers.py": {
+    1: "domínio consultado para testar usuários sem pré-autenticação Kerberos.",
+  },
+  hashcat: {
+    1: "arquivo com hash a quebrar.",
+    2: "wordlist usada nas tentativas de senha.",
+  },
+  "psexec.py": {
+    1: "domínio, usuário, senha e host usados para abrir execução remota no alvo.",
+  },
+  rpcclient: {
+    1: "host alvo do serviço RPC.",
+  },
+  "bloodhound-python": {
+    1: "coletor Python do BloodHound; as opções seguintes definem domínio, credencial, DNS e escopo.",
+  },
+  net: {
+    1: "subcomando do net; aqui opera em grupo, RPC ou senha conforme a linha.",
+    2: "objeto alvo da operação, como grupo ou usuário.",
+  },
+  pypykatz: {
+    1: "modo de análise; lsa indica extração de segredos associados ao LSASS.",
+    2: "tipo de entrada; minidump informa que será analisado um dump de memória.",
+    3: "arquivo de dump do LSASS a ser processado.",
+  },
+  diskshadow: {
+    1: "script com instruções para criar ou expor a shadow copy.",
+  },
+  robocopy: {
+    1: "origem da cópia, neste caso um caminho dentro da shadow copy.",
+    2: "destino local da cópia.",
+    3: "arquivo a copiar da origem para o destino.",
+  },
+  "secretsdump.py": {
+    1: "modo local/offline após informar ntds.dit e SYSTEM.",
+  },
+  msfvenom: {
+    1: "ferramenta que vai gerar o payload conforme opções de payload, host, porta, formato e saída.",
+  },
+  ssh: {
+    1: "usuário e host usados para abrir a sessão SSH.",
+  },
+  sudo: {
+    1: "comando permitido para execução elevada segundo a regra de sudo.",
+  },
+  "python3.8": {
+    1: "código Python passado diretamente pela linha de comando.",
+  },
+};
+
+const optionValueLabels: Record<string, string> = {
+  "-oN": "nome do arquivo que receberá a saída normal do Nmap.",
+  "-p": "porta ou conjunto de portas selecionadas.",
+  "-p:ports": "porta ou conjunto de portas selecionadas.",
+  "-p:payload": "payload escolhido para gerar o artefato.",
+  "--min-rate": "taxa mínima de pacotes por segundo.",
+  "-u": "nome de usuário usado na autenticação.",
+  "-u:url": "URL base que será enumerada.",
+  "-p:password": "senha usada na autenticação.",
+  "-w": "wordlist usada pela ferramenta.",
+  "-d": "nome do domínio consultado.",
+  "-ns": "servidor DNS usado para resolver o domínio.",
+  "-c": "conjunto de coletores selecionado.",
+  "-c:python": "código Python a executar diretamente.",
+  "-outputfile": "arquivo de saída da coleta.",
+  "-usersfile": "arquivo com a lista de usuários.",
+  "-m": "identificador do tipo de hash no hashcat.",
+  "-ntds": "caminho do arquivo ntds.dit.",
+  "-system": "caminho da hive SYSTEM.",
+  "-f": "formato do payload gerado.",
+  "-o": "arquivo de saída.",
+  "/user": "usuário e senha usados para autenticar a alteração.",
+  "/S": "servidor ou controlador de domínio alvo.",
+  "/s": "arquivo de script usado pelo diskshadow.",
+};
+
+const optionTokensWithValues = new Set(Object.keys(optionValueLabels));
+
+function tokenizeCommand(command: string) {
+  return command.match(/"[^"]*"|'[^']*'|\S+/g) || [];
+}
+
+function normalizeOption(token: string, commandName: string) {
+  if (token.startsWith("/user:")) return "/user";
+  if (token === "-p" && commandName === "bloodhound-python") return "-p:password";
+  if (token === "-p" && commandName === "nmap") return "-p:ports";
+  if (token === "-p" && commandName === "msfvenom") return "-p:payload";
+  if (token === "-u" && commandName === "gobuster") return "-u:url";
+  if (token === "-c" && commandName === "python3.8") return "-c:python";
+  return token;
+}
+
+function isOptionToken(token: string) {
+  if (token.startsWith("-")) return true;
+  if (token.startsWith("//")) return false;
+  if (optionDescriptions[token] || optionValueLabels[token]) return true;
+  return /^\/[A-Za-z]+:/.test(token);
+}
+
+function isLikelyTechnicalCommand(commandName: string, tokens: string[]) {
+  return Boolean(
+    commandDescriptions[commandName] ||
+      commandName.endsWith(".py") ||
+      tokens.some((token) => isOptionToken(token) || token.includes("://")),
+  );
+}
+
+function describeValue(token: string, previousOption?: string) {
+  const cleanToken = token.replace(/^["']|["']$/g, "");
+
+  if (previousOption && optionValueLabels[previousOption]) {
+    const knownValue = valueDescriptions[cleanToken];
+    return knownValue ? `${optionValueLabels[previousOption]} Neste caso: ${knownValue}` : optionValueLabels[previousOption];
+  }
+
+  if (valueDescriptions[cleanToken]) return valueDescriptions[cleanToken];
+  if (/^https?:\/\//.test(cleanToken)) return "URL alvo consultada pela ferramenta.";
+  if (/^(?:\d{1,3}\.){3}\d{1,3}$/.test(cleanToken)) return "endereço IP do alvo autorizado no laboratório.";
+  if (/^(?:\d{1,3}\.){3}\d{1,3}\/\d{1,2}$/.test(cleanToken)) return "faixa de rede em notação CIDR usada como escopo da varredura.";
+  if (/^LHOST=/.test(cleanToken)) return "define o IP da máquina do operador que receberá a conexão reversa.";
+  if (/^LPORT=/.test(cleanToken)) return "define a porta local onde o listener aguardará a conexão reversa.";
+  if (/^\/\/[^/]+/.test(cleanToken)) return "alvo SMB em formato de servidor ou share.";
+  if (/^<.+>$/.test(cleanToken)) return "placeholder que deve ser substituído pelo valor real do laboratório.";
+  if (/^[\w.-]+\.[\w.-]+\/.+/.test(cleanToken)) return "domínio e credencial no formato aceito pela ferramenta.";
+  if (/^[\w.-]+@(?:\d{1,3}\.){3}\d{1,3}$/.test(cleanToken)) return "usuário e host usados para autenticação remota.";
+  if (/^\d+$/.test(cleanToken)) return "valor numérico usado pela opção anterior ou pelo subcomando.";
+  if (/^[\w./\\:-]+\.(txt|war|DMP|dit|xml)$/i.test(cleanToken)) return "arquivo usado como entrada ou saída nesta etapa.";
+  return "";
+}
+
+function buildPartsFromTokens(tokens: string[]): CommandPart[] {
+  const commandName = tokens[0];
+
+  if (!commandName || !isLikelyTechnicalCommand(commandName, tokens)) return [];
+
+  const parts: CommandPart[] = [];
+  const commandDescription = commandDescriptions[commandName] || "ferramenta ou script executado nesta etapa.";
+  parts.push({ term: commandName, description: commandDescription });
+
+  let positionalIndex = 0;
+  let previousOption: string | undefined;
+
+  tokens.slice(1).forEach((token) => {
+    if (isOptionToken(token)) {
+      const normalized = normalizeOption(token, commandName);
+      parts.push({
+        term: token,
+        description: optionDescriptions[normalized] || optionDescriptions[token] || "opção que altera o comportamento da ferramenta nesta etapa.",
+      });
+      previousOption = optionTokensWithValues.has(normalized) ? normalized : undefined;
+      return;
+    }
+
+    const valueDescription = describeValue(token, previousOption);
+
+    if (valueDescription) {
+      parts.push({ term: token, description: valueDescription });
+    } else {
+      positionalIndex += 1;
+      const positionalDescription = positionalDescriptions[commandName]?.[positionalIndex];
+      if (positionalDescription) parts.push({ term: token, description: positionalDescription });
+    }
+
+    previousOption = undefined;
+  });
+
+  return parts;
+}
+
+function buildCommandParts(command: string): CommandPart[] {
+  const lines = command
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line && !line.startsWith("#") && !line.startsWith(">"));
+
+  return lines.flatMap((line) => {
+    const tokens = tokenizeCommand(line);
+    const parts: CommandPart[] = [];
+    let segment: string[] = [];
+
+    tokens.forEach((token) => {
+      if (token === "|" || token === "&&" || token === ";") {
+        parts.push(...buildPartsFromTokens(segment));
+        parts.push({
+          term: token,
+          description: token === "|" ? "pipe: envia a saída do comando anterior para o próximo comando." : "separador/encadeador de comandos no shell.",
+        });
+        segment = [];
+        return;
+      }
+
+      segment.push(token);
+    });
+
+    parts.push(...buildPartsFromTokens(segment));
+    return parts;
+  });
+}
+
 export default function AdminDayView() {
   const [, setLocation] = useLocation();
   const params = useParams<{ day: string }>();
@@ -290,6 +605,62 @@ function QuestionCard({ ask, expected }: { ask: string; expected: string }) {
   );
 }
 
+function CommandBreakdown({ command }: { command: string }) {
+  const parts = buildCommandParts(command);
+
+  if (parts.length === 0) return null;
+
+  return (
+    <div
+      style={{
+        marginTop: 8,
+        background: "#090909",
+        border: "1px solid #1a1a1a",
+      }}
+    >
+      <div
+        style={{
+          padding: "7px 10px",
+          borderBottom: "1px solid #171717",
+          color: "#666",
+          fontSize: "0.68rem",
+          letterSpacing: "0.08em",
+          textTransform: "uppercase",
+        }}
+      >
+        Partes do comando
+      </div>
+      <div style={{ padding: "8px 10px" }}>
+        {parts.map((part, i) => (
+          <div
+            key={`${part.term}-${i}`}
+            style={{
+              display: "grid",
+              gridTemplateColumns: "minmax(92px, 180px) 1fr",
+              gap: 10,
+              padding: "6px 0",
+              borderBottom: i === parts.length - 1 ? "none" : "1px solid #121212",
+              alignItems: "start",
+            }}
+          >
+            <code
+              style={{
+                color: "#d6f5d6",
+                fontFamily: "monospace",
+                fontSize: "0.78rem",
+                wordBreak: "break-word",
+              }}
+            >
+              {part.term}
+            </code>
+            <span style={{ color: "#777", fontSize: "0.8rem", lineHeight: 1.5 }}>{part.description}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function SolutionCard({ solution }: { solution: import("@/data/adminData").LabSolution }) {
   const [open, setOpen] = useState(false);
 
@@ -353,13 +724,16 @@ function SolutionCard({ solution }: { solution: import("@/data/adminData").LabSo
                     {step.explanation}
                   </p>
                   {step.command && (
-                    <TerminalBlock
-                      lines={step.command.split("\n").map((line) => ({
-                        type: line.startsWith("#") ? "comment" : "prompt",
-                        text: line,
-                      }))}
-                      label="comando"
-                    />
+                    <>
+                      <TerminalBlock
+                        lines={step.command.split("\n").map((line) => ({
+                          type: line.startsWith("#") ? "comment" : "prompt",
+                          text: line,
+                        }))}
+                        label="comando"
+                      />
+                      <CommandBreakdown command={step.command} />
+                    </>
                   )}
                   {step.output && (
                     <div
