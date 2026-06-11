@@ -3,6 +3,6 @@
   "framework": "vite",
   "installCommand": "pnpm install --frozen-lockfile",
   "buildCommand": "pnpm --filter @workspace/cibersec build",
-  "outputDirectory": "artifacts/cibersec/dist/public",
+  "outputDirectory": "dist/public",
   "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
 }
