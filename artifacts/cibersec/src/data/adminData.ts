@@ -155,7 +155,7 @@ const teacherTenHourBlocksByDay: Record<number, TeacherNote['blocks']> = {
         '2:30-3:45 — Web manual. Fala sugerida: "Antes de atacar uma aplicação, conversem com ela." Demonstre curl -i, -I, -L, cookies, Host header, robots.txt, código-fonte e comentários HTML. Só depois mostre ffuf/gobuster.',
         '3:45-4:30 — Fuzzing com filtros. Mostre uma execução ruim cheia de falso positivo e uma execução boa com -fc ou -fs. Peça para cada aluno explicar por que filtrou daquele jeito.',
         '4:30-5:30 — FTP, SMB e SSH. Demonstre anonymous FTP, smbclient -L -N, conexão a share e SSH com senha/chave. Conecte com Cap, Devel e Active mesmo que Active seja Dia 2.',
-        '5:30-6:45 — Linux local. Faça drill com whoami, id, sudo -l, SUID, capabilities, cron e grep por segredos. Fala sugerida: "Foothold não é final; é o começo da investigação local."',
+        '5:30-6:45 — Linux local. Faça drill com whoami, id, sudo -l, SUID, capabilities, cron e grep por segredos. Depois rode linPEAS como comparação: cada achado destacado precisa ser validado com comando nativo. Fala sugerida: "Foothold não é final; é o começo da investigação local; linPEAS ajuda a cobrir, mas não pensa por vocês."',
         '6:45-7:30 — Wireshark/PCAP. Abra PCAP com FTP, mostre Follow TCP Stream e credenciais em texto claro. Peça mini-relatório de 10 linhas.',
         '7:30-10:00 — Labs easy com checkpoints. A cada 30 minutos, pare a turma e pergunte: qual serviço, qual evidência, qual hipótese, qual próximo comando? Não entregue solução completa antes do debrief.',
         '10:00-10:30 — Debrief. Cada aluno apresenta um erro de método e uma evidência boa. Feche ligando cada lab ao conteúdo ensinado.',
@@ -263,7 +263,7 @@ const baseTeacherNotes: TeacherNote[] = [
         duration: '3 horas',
         content: [
           'Demo ao vivo: gobuster enumerando diretórios em uma aplicação de teste.',
-          'Mostre SQLi básico no Burp Suite: altere parâmetro e observe resposta.',
+          'Mostre SQLi básico com curl e navegador: altere parâmetro, compare status/tamanho da resposta e explique por que a validação vem antes de qualquer automação.',
           'Windows Event Viewer: abra em VM Windows, filtre por 4625. Mostre como ler um logon falho.',
           'Explique Event IDs como cartões de identidade de eventos. Faça a turma montar uma tabela de memória.',
           'Wireshark: abra PCAP com credenciais FTP, filtre "ftp", mostre USER e PASS em texto claro.',
@@ -403,7 +403,7 @@ const baseTeacherNotes: TeacherNote[] = [
           'BloodHound: mostre shortest paths to DA para o cenário da Blackfield.',
           'Explique SeBackupPrivilege → extração de NTDS.dit via diskshadow + robocopy.',
           'Privesc Windows: mostre SeImpersonatePrivilege → PrintSpoofer em demo.',
-          'Privesc Linux: revise a Cap: python3 capability como exemplo concreto.',
+          'Privesc Linux: revise a Cap: python3 capability como exemplo concreto. Mostre linPEAS depois do getcap manual e peça que a turma compare o achado automatizado com a evidência nativa.',
         ],
         questions: [
           { ask: 'Como extrair NTDS.dit de um DC sem copiá-lo diretamente?', expected: 'Usar diskshadow para criar volume shadow copy do disco, depois robocopy para extrair ntds.dit e SYSTEM hive da shadow copy.' },
