@@ -4,29 +4,29 @@ import { slides, labs } from "@/data/courseData";
 const dayMeta = [
   {
     day: 1,
-    title: "Dia 1 — Fundamentos",
-    subtitle: "Redes, Linux, HTTP, Nmap, Wireshark, Web",
+    title: "Dia 1 — Fundamentos Intensivos",
+    subtitle: "10h30: método, redes, Nmap profundo, Web, Linux, SMB/FTP/SSH e PCAP",
     color: "#4a9e8a",
     machines: ["Cap", "Nibbles", "Jerry", "Devel", "Blue", "Lame"],
   },
   {
     day: 2,
-    title: "Dia 2 — Intermediário",
-    subtitle: "Wazuh, Active Directory, Forense de Disco, PCAP",
+    title: "Dia 2 — Intermediário Intensivo",
+    subtitle: "10h30: Wazuh, Windows logs, Sysmon, Kerberos, AD, disco e PCAP",
     color: "#6a8ecb",
     machines: ["Forest", "Sauna", "Active", "Monteverde", "Cascade", "Cronos"],
   },
   {
     day: 3,
-    title: "Dia 3 — Avançado",
-    subtitle: "Memória, Malware, MITRE ATT&CK, Privilege Escalation",
+    title: "Dia 3 — Avançado Intensivo",
+    subtitle: "10h30: memória, malware, MITRE, privesc Linux/Windows e AD avançado",
     color: "#d4913a",
     machines: ["Blackfield", "Sizzle", "Querier", "Mantis", "Reel2", "Multimaster"],
   },
   {
     day: 4,
-    title: "Dia 4 — Revisão Final",
-    subtitle: "Checklist, Cheat Sheet, Relatório, Speed Runs",
+    title: "Dia 4 — Revisão e Simulado",
+    subtitle: "10h30: revisão ativa, comandos explicados, relatório, simulado e speed runs",
     color: "#888",
     machines: ["Speed runs de todas as máquinas anteriores"],
   },
@@ -71,7 +71,7 @@ export default function Home() {
             Intensivo Olímpico de Cibersegurança
           </h1>
           <p style={{ color: "#666", marginTop: 12, fontSize: "0.95rem", lineHeight: 1.7, maxWidth: 600 }}>
-            4 dias de treinamento intensivo cobrindo fundamentos de redes, forense digital, Active Directory, análise de memória, malware e CTF competitivo.
+            Trilha intensiva de 40h+ com teoria, comandos explicados, critérios de escolha de ferramentas, exercícios guiados, labs e relatórios.
           </p>
         </div>
 
@@ -94,14 +94,15 @@ export default function Home() {
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(3, 1fr)",
+            gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
             gap: 1,
             background: "#1a1a1a",
             marginBottom: 40,
           }}
         >
           {[
-            { label: "Dias de conteúdo", value: "4" },
+            { label: "Dias intensivos", value: "4" },
+            { label: "Carga mínima", value: "40h+" },
             { label: "Slides + Labs", value: String(slides.length + labs.length) },
             { label: "Máquinas HTB", value: String(labs.length) },
           ].map((stat) => (
@@ -175,7 +176,7 @@ export default function Home() {
                     </span>
                   </div>
                   <div style={{ fontSize: "1rem", fontWeight: 600, color: "#e0e0e0", marginBottom: 6 }}>
-                    {d.title.split("—")[1]?.trim() || d.title}
+                    {d.title.split(/—|â€”/)[1]?.trim() || d.title}
                   </div>
                   <div style={{ fontSize: "0.8rem", color: "#666", lineHeight: 1.5, marginBottom: 14 }}>
                     {d.subtitle}

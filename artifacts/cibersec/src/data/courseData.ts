@@ -199,7 +199,1512 @@ export const labs: Lab[] = [
   },
 ];
 
-export const slides: Slide[] = [
+const intensiveSlides: Slide[] = [
+  // ==================== TRILHA INTENSIVA - DIA 1 ====================
+  {
+    id: 'd1-intensive-10h-plan', title: 'Dia 1 Intensivo — Roteiro de 10h30', day: 1, topic: 'Ferramentas',
+    type: 'table',
+    content: {
+      theory: [
+        'Este dia não é uma lista de comandos. O objetivo é formar o raciocínio inicial: olhar para um alvo autorizado, descobrir sua superfície, escolher ferramentas com intenção e registrar evidências.',
+        'Ao final do Dia 1 você deve conseguir explicar por que rodou cada comando, o que esperava encontrar, como leu a saída e qual decisão tomou depois.',
+      ],
+      table: {
+        headers: ['Tempo', 'Bloco', 'O que aprender', 'Entrega obrigatória'],
+        rows: [
+          ['0:00-0:40', 'Escopo e método', 'Definir alvo autorizado, criar pasta do caso, entender ciclo reconhecer -> enumerar -> validar -> explorar em laboratório.', 'Notas com IP, domínio, objetivo e limites do lab.'],
+          ['0:40-2:00', 'TCP/IP, portas e DNS', 'Camadas, TCP vs UDP, handshake, CIDR, portas comuns, DNS direto e reverso, zone transfer.', 'Mapa de portas e serviços com hipóteses iniciais.'],
+          ['2:00-3:20', 'Nmap profundo', 'Host discovery, scan de portas, detecção de versão, scripts NSE, UDP, leitura de estados e salvamento de evidência.', 'scan.txt, allports.txt e uma interpretação escrita.'],
+          ['3:20-4:30', 'HTTP manual', 'Headers, cookies, métodos, status code, redirects, virtual hosts, enumeração de diretórios e fuzzing.', 'Lista de rotas, tecnologias, parâmetros e possíveis vetores.'],
+          ['4:30-5:30', 'Linux essencial', 'Filesystem, permissões, SUID, capabilities, processos, logs e comandos de orientação pós-shell.', 'Checklist de enumeração local preenchida.'],
+          ['5:30-6:30', 'FTP, SMB e SSH', 'Acesso anônimo, listagem de shares, download recursivo, credenciais reaproveitadas e chaves SSH.', 'Tabela serviço -> evidência -> próximo teste.'],
+          ['6:30-7:30', 'Wireshark e PCAP', 'Filtros, Follow TCP Stream, extração de objetos, credenciais em texto claro e reconstrução de sessão.', 'Um mini-relatório de PCAP com protocolo, credencial e prova.'],
+          ['7:30-10:30', 'Labs Easy guiados', 'Aplicar método em Cap, Nibbles, Jerry, Devel, Blue e Lame com documentação em tempo real.', 'Uma write-up curta por máquina, mesmo que incompleta.'],
+        ],
+      },
+      tips: [
+        'Se um bloco acabar rápido, refaça o mesmo exercício explicando em voz alta cada decisão. A meta é domínio, não velocidade vazia.',
+        'Não avance para exploração enquanto não souber quais serviços existem e qual evidência sustenta sua hipótese.',
+      ]
+    }
+  },
+  {
+    id: 'd1-methodology-before-tools', title: 'Metodologia — Antes de Rodar Ferramentas', day: 1, topic: 'Ferramentas',
+    type: 'table',
+    content: {
+      theory: [
+        'A pergunta correta vem antes da ferramenta. Nmap, curl, gobuster, smbclient e Wireshark respondem perguntas diferentes; usar todos sem hipótese só gera ruído.',
+        'Todo comando precisa produzir uma decisão: ampliar enumeração, testar uma hipótese, descartar um caminho ou coletar evidência para o relatório.',
+      ],
+      table: {
+        headers: ['Pergunta', 'Ferramenta inicial', 'Como usar', 'Como ler', 'Próximo passo'],
+        rows: [
+          ['O host está acessível?', 'ping, nmap -sn, nmap -Pn', 'Teste ICMP e, se bloqueado, force scan sem ping com -Pn.', 'Sem resposta ICMP não significa host offline.', 'Rodar scan TCP nas portas mais comuns.'],
+          ['Quais portas estão abertas?', 'nmap', 'Comece com -sC -sV e depois -p- para todas as portas TCP.', 'STATE open indica serviço aceitando conexão.', 'Enumerar cada serviço aberto por protocolo.'],
+          ['Qual tecnologia web roda ali?', 'curl, whatweb, navegador', 'Leia headers, título, cookies, redirects e HTML.', 'Server, X-Powered-By e cookies sugerem stack.', 'Buscar rotas, versões e painéis.'],
+          ['Existe conteúdo escondido?', 'gobuster, ffuf, feroxbuster', 'Fuzzing de diretórios, arquivos, extensões e vhosts.', '200, 301, 302, 401 e 403 merecem inspeção.', 'Abrir manualmente e testar parâmetros.'],
+          ['Há arquivos expostos?', 'ftp, smbclient, enum4linux', 'Teste anonymous/null session antes de credenciais.', 'Shares legíveis e arquivos de backup são evidência forte.', 'Baixar, classificar e buscar segredos.'],
+          ['O tráfego revela credenciais?', 'Wireshark, tshark', 'Filtre por ftp, http, telnet, smtp e Follow TCP Stream.', 'USER/PASS, Authorization Basic e cookies aparecem em claro.', 'Validar credenciais em serviços permitidos do lab.'],
+          ['Depois do shell, como escalar?', 'linpeas manual, sudo -l, find, getcap', 'Comece pelos comandos nativos antes de scripts automáticos.', 'SUID incomum, NOPASSWD e capability são vetores.', 'Consultar GTFOBins e testar com cuidado.'],
+        ],
+      },
+      tips: [
+        'Escreva sempre: hipótese -> comando -> resultado -> decisão. Isso transforma tentativa em aprendizado.',
+        'Em CTF, velocidade vem de método repetido. Sem método, cada máquina parece um labirinto novo.',
+      ]
+    }
+  },
+  {
+    id: 'd1-tool-choice-matrix', title: 'Ferramentas do Dia 1 — Quando Usar Cada Uma', day: 1, topic: 'Ferramentas',
+    type: 'table',
+    content: {
+      table: {
+        headers: ['Ferramenta', 'Use quando', 'Comando base', 'O que observar', 'Evite quando'],
+        rows: [
+          ['nmap', 'Precisa descobrir portas, serviços, versões e scripts seguros.', 'nmap -sC -sV -oN scan.txt <IP>', 'Porta, serviço, versão, scripts, redirects e nomes de host.', 'Você já sabe a porta exata e quer uma requisição manual simples.'],
+          ['masscan', 'Precisa varrer muitas portas ou muitos hosts rapidamente em lab controlado.', 'masscan <IP> -p1-65535 --rate 10000', 'Portas abertas para confirmar depois com nmap.', 'Rede real, escopo pequeno ou ambiente sensível.'],
+          ['curl', 'Precisa ver headers, corpo, cookies, POST, redirects e APIs sem navegador.', 'curl -i -L http://<host>/', 'Status code, Set-Cookie, Location, Server e diferenças de resposta.', 'Precisa interagir com JavaScript complexo.'],
+          ['gobuster', 'Quer enumeração simples de diretórios, arquivos, DNS ou vhosts.', 'gobuster dir -u http://<host>/ -w wordlist.txt', 'Códigos 200/301/302/401/403 e tamanho da resposta.', 'O alvo filtra por tamanho ou tem muitos falsos positivos.'],
+          ['ffuf', 'Precisa fuzzing flexível em caminho, parâmetro, header ou vhost.', 'ffuf -u http://<host>/FUZZ -w wordlist.txt', 'Filtrar por status, tamanho, palavras e linhas.', 'Você ainda não entendeu a aplicação manualmente.'],
+          ['smbclient', 'Precisa listar shares SMB e baixar arquivos.', 'smbclient -L //<IP> -N', 'Shares legíveis, permissões de leitura/escrita e arquivos sensíveis.', 'Quer enumeração ampla de usuários e políticas.'],
+          ['enum4linux-ng', 'Precisa panorama SMB/RPC em Windows ou Samba.', 'enum4linux-ng -A <IP>', 'Usuários, grupos, shares, domínio e política de senha.', 'Tem credenciais válidas e precisa de ações específicas.'],
+          ['netcat', 'Precisa testar banner, listener ou shell em laboratório.', 'nc -nv <IP> <porta>', 'Banner, resposta bruta e conectividade.', 'Protocolo exige TLS, autenticação complexa ou cliente específico.'],
+          ['Wireshark', 'Precisa entender tráfego visualmente.', 'Abrir pcap -> Follow TCP Stream', 'Credenciais, arquivos, sequência TCP, DNS e HTTP.', 'Quer processar muitos PCAPs em lote. Use tshark.'],
+          ['tshark', 'Precisa extrair dados de PCAP por terminal.', 'tshark -r captura.pcap -Y http', 'Campos filtrados, contagens e exportação para texto.', 'Ainda está aprendendo o fluxo visual do pacote.'],
+        ]
+      }
+    }
+  },
+  {
+    id: 'd1-nmap-deep-dive', title: 'Nmap — Comandos, Flags e Decisões', day: 1, topic: 'Ferramentas',
+    type: 'commands',
+    content: {
+      theory: [
+        'Nmap não é um botão mágico. Ele responde perguntas de rede. A escolha das flags depende do momento: descoberta, portas, versão, scripts, UDP ou confirmação.',
+        'A saída deve ser lida em quatro camadas: host, porta, estado, serviço/versão. Só depois entram scripts e possíveis CVEs.',
+      ],
+      commands: [
+        '# Descoberta de host em rede local ou faixa autorizada',
+        'nmap -sn 10.10.10.0/24',
+        '',
+        '# Scan inicial equilibrado para CTF',
+        'nmap -sC -sV -oN scan.txt <IP>',
+        '',
+        '# Quando ping/ICMP é bloqueado e o host parece offline',
+        'nmap -Pn -sC -sV -oN scan.txt <IP>',
+        '',
+        '# Todas as portas TCP, salvando evidência',
+        'nmap -p- --min-rate 5000 -oN allports.txt <IP>',
+        '',
+        '# Rodar scripts e versão apenas nas portas encontradas',
+        'nmap -sC -sV -p 22,80,445 -oN targeted.txt <IP>',
+        '',
+        '# UDP é lento: comece por portas comuns',
+        'sudo nmap -sU --top-ports 20 -oN udp-top.txt <IP>',
+        '',
+        '# Scripts NSE específicos por serviço',
+        'nmap --script=http-enum -p80 <IP>',
+        'nmap --script=smb-enum-shares,smb-enum-users -p445 <IP>',
+        'nmap --script=ftp-anon -p21 <IP>',
+        '',
+        '# Saída completa para relatórios e automação',
+        'nmap -sC -sV -oA scans/initial <IP>',
+      ],
+      table: {
+        headers: ['Estado', 'Significado', 'Decisão'],
+        rows: [
+          ['open', 'O serviço aceitou conexão.', 'Enumerar protocolo e versão.'],
+          ['closed', 'O host respondeu, mas não há serviço na porta.', 'Não explorar; use como prova de host vivo.'],
+          ['filtered', 'Firewall ou filtro bloqueou resposta.', 'Tente -Pn, timing diferente ou outra técnica permitida.'],
+          ['open|filtered', 'Comum em UDP, não dá para confirmar.', 'Validar manualmente com cliente do protocolo.'],
+        ]
+      },
+      tips: [
+        'Nunca copie um exploit só porque o Nmap mostrou uma versão. Primeiro confirme produto, versão, OS e contexto.',
+        'Se aparecer hostname em certificado, redirect ou script, adicione ao /etc/hosts e enumere por nome.',
+      ]
+    }
+  },
+  {
+    id: 'd1-web-enum-deep-dive', title: 'Web — Enumeração Manual e Fuzzing', day: 1, topic: 'Web',
+    type: 'commands',
+    content: {
+      theory: [
+        'Enumeração web começa manual: abra a página, veja código-fonte, headers, robots.txt, sitemap.xml, cookies, links e mensagens de erro. Fuzzing vem depois para ampliar cobertura.',
+        'A diferença entre bom e mau fuzzing é filtro. Sem filtrar status, tamanho e palavras, você afunda em falso positivo.',
+      ],
+      commands: [
+        '# Headers, redirects e tecnologias',
+        'curl -i http://<host>/',
+        'curl -I http://<host>/',
+        'curl -L -i http://<host>/',
+        'whatweb http://<host>/',
+        '',
+        '# Código-fonte e arquivos previsíveis',
+        'curl -s http://<host>/ | sed -n "1,120p"',
+        'curl -s http://<host>/robots.txt',
+        'curl -s http://<host>/sitemap.xml',
+        '',
+        '# POST manual e cookies',
+        'curl -i -X POST -d "user=admin&pass=admin" http://<host>/login',
+        'curl -i -b "PHPSESSID=valor" http://<host>/admin',
+        'curl -i -H "X-Forwarded-For: 127.0.0.1" http://<host>/admin',
+        '',
+        '# Diretórios e extensões',
+        'gobuster dir -u http://<host>/ -w /usr/share/wordlists/dirb/common.txt',
+        'gobuster dir -u http://<host>/ -w common.txt -x php,txt,bak,zip,old',
+        '',
+        '# Fuzzing flexível com filtros',
+        'ffuf -u http://<host>/FUZZ -w common.txt -mc all -fc 404',
+        'ffuf -u http://<host>/ -H "Host: FUZZ.<domain>" -w subdomains.txt -fs <tamanho_padrao>',
+        'ffuf -u "http://<host>/page.php?id=FUZZ" -w numbers.txt',
+      ],
+      table: {
+        headers: ['Sinal', 'O que pode significar', 'Ação'],
+        rows: [
+          ['401 Unauthorized', 'Existe recurso protegido.', 'Testar credenciais padrão e caminhos relacionados.'],
+          ['403 Forbidden', 'Recurso existe, mas acesso negado.', 'Testar bypass de path, vhost, header ou extensão.'],
+          ['301/302', 'Redirect revela caminho ou host.', 'Seguir com -L e adicionar hostnames no /etc/hosts.'],
+          ['Cookie estranho', 'Sessão, JWT, role ou debug.', 'Decodificar, comparar antes/depois de login e testar flags.'],
+          ['Erro SQL/stack trace', 'Input chegando ao backend.', 'Validar manualmente injeção em lab autorizado.'],
+        ]
+      }
+    }
+  },
+  {
+    id: 'd1-linux-command-foundation', title: 'Linux — Comandos que Você Precisa Entender', day: 1, topic: 'Linux',
+    type: 'table',
+    content: {
+      theory: [
+        'Memorizar comando sem entender a pergunta é frágil. Esta tabela mostra o que cada comando responde durante enumeração e pós-exploração em laboratório.',
+      ],
+      table: {
+        headers: ['Comando', 'Pergunta respondida', 'Como interpretar', 'Erro comum'],
+        rows: [
+          ['whoami; id', 'Quem sou e quais grupos tenho?', 'uid, gid e grupos podem liberar arquivos ou sudo.', 'Ignorar grupos como docker, lxd, adm e backup.'],
+          ['pwd; ls -la', 'Onde estou e o que existe aqui?', 'Arquivos ocultos, donos e permissões revelam pistas.', 'Ler só nomes e ignorar permissões.'],
+          ['cat /etc/passwd', 'Quais usuários existem?', 'Shells reais indicam contas interativas.', 'Confundir /etc/passwd com senha em texto claro.'],
+          ['sudo -l', 'Posso executar algo como outro usuário?', 'NOPASSWD e comandos permitidos são vetores diretos.', 'Não testar logo após obter shell.'],
+          ['find / -perm -4000 -type f 2>/dev/null', 'Há binários SUID?', 'Binário incomum com dono root merece GTFOBins.', 'Achar que todo SUID é vulnerável.'],
+          ['getcap -r / 2>/dev/null', 'Há capabilities perigosas?', 'cap_setuid, cap_dac_read_search e cap_net_raw são relevantes.', 'Esquecer capabilities porque não aparecem no ls -la.'],
+          ['ps aux', 'Que processos rodam e como?', 'Usuário, comando e caminho podem revelar serviços e senhas.', 'Ignorar processo rodando como root em caminho gravável.'],
+          ['ss -tulpn', 'Quais portas locais existem?', 'Serviço só em 127.0.0.1 pode exigir port forward.', 'Olhar apenas portas externas do Nmap.'],
+          ['cat /etc/crontab; ls -la /etc/cron.*', 'Há tarefas agendadas?', 'Script gravável executado por root vira privesc.', 'Não esperar o cron executar para confirmar.'],
+          ['grep -R "pass\\|pwd\\|secret" . 2>/dev/null', 'Há segredos em arquivos?', 'Config, backup e histórico costumam conter credenciais.', 'Rodar grep em / inteiro sem foco e travar o shell.'],
+        ]
+      },
+      tips: [
+        'Depois de qualquer credencial encontrada, teste reaproveitamento apenas nos serviços do lab e registre onde ela foi encontrada.',
+      ]
+    }
+  },
+
+  // ==================== TRILHA INTENSIVA - DIA 2 ====================
+  {
+    id: 'd2-intensive-10h-plan', title: 'Dia 2 Intensivo — Roteiro de 10h30', day: 2, topic: 'Blue Team',
+    type: 'table',
+    content: {
+      theory: [
+        'O Dia 2 conecta Blue Team, Windows e Active Directory. A meta é entender evidência e identidade: quem autenticou, onde, com qual privilégio, por qual protocolo e deixando quais rastros.',
+      ],
+      table: {
+        headers: ['Tempo', 'Bloco', 'O que aprender', 'Entrega obrigatória'],
+        rows: [
+          ['0:00-1:15', 'Triagem Wazuh', 'Rule level, decoder, campos, raw log, falso positivo vs incidente.', 'Ficha de triagem de 3 alertas.'],
+          ['1:15-2:30', 'Windows Event Viewer', 'Security log, tipos de logon, 4624, 4625, 4672, 4688, correlação por tempo.', 'Timeline curta de autenticação.'],
+          ['2:30-3:45', 'Sysmon', 'Process creation, network connection, DNS query, registry e file create.', 'Árvore de processo suspeita explicada.'],
+          ['3:45-5:15', 'Kerberos e LDAP', 'Fluxo AS-REQ, TGT, TGS, SPN, LDAP bind, DC e domínio.', 'Desenho do fluxo Kerberos com portas.'],
+          ['5:15-6:45', 'Ataques AD em CTF', 'AS-REP Roasting, Kerberoasting, GPP cpassword, BloodHound e DCSync.', 'Tabela técnica -> pré-requisito -> ferramenta.'],
+          ['6:45-7:45', 'Forense de disco', 'Imagem, hash, MFT, Prefetch, AmCache, LNK, Jump Lists e Registry hives.', 'Lista de artefatos por pergunta investigativa.'],
+          ['7:45-10:30', 'Labs Medium', 'Forest, Sauna, Active, Monteverde, Cascade e Cronos com debrief por evidência.', 'Write-up com pelo menos uma cadeia AD completa.'],
+        ]
+      }
+    }
+  },
+  {
+    id: 'd2-wazuh-windows-workflow', title: 'Blue Team — Fluxo de Investigação', day: 2, topic: 'Blue Team',
+    type: 'table',
+    content: {
+      theory: [
+        'Investigar é reduzir incerteza. Você começa com alerta, volta para o log bruto, correlaciona por tempo e termina com uma afirmação apoiada por evidência.',
+      ],
+      table: {
+        headers: ['Etapa', 'Pergunta', 'Onde olhar', 'Evidência forte'],
+        rows: [
+          ['Triage', 'O alerta é crítico, repetido ou isolado?', 'Wazuh level, rule id, agent, timestamp.', 'Level alto, múltiplos eventos ou host sensível.'],
+          ['Contexto', 'Quem, de onde, para onde?', 'srcip, dstip, user, hostname, process.', 'Mesmo srcip gerando falhas e depois sucesso.'],
+          ['Autenticação', 'Houve login bem-sucedido?', 'Windows 4624, 4625, 4648, 4672.', '4624 tipo 3 seguido de 4672 para admin.'],
+          ['Execução', 'Que processo nasceu?', 'Security 4688 ou Sysmon 1.', 'cmd/powershell filho de Office, webserver ou serviço.'],
+          ['Rede', 'O processo falou com IP externo?', 'Sysmon 3, firewall, PCAP.', 'Processo incomum conectando porta rara.'],
+          ['Persistência', 'Algo foi criado para voltar?', 'Services, Run Keys, Scheduled Tasks, Wazuh FIM.', 'Serviço novo, tarefa agendada ou chave Run.'],
+          ['Conclusão', 'Qual técnica MITRE descreve o comportamento?', 'ATT&CK + evidências coletadas.', 'T-number com logs e timestamps.'],
+        ]
+      },
+      commands: [
+        'Get-WinEvent -LogName Security -FilterXPath "*[System[EventID=4625]]" | Select-Object -First 20',
+        'Get-WinEvent -LogName Security | Where-Object {$_.Id -in @(4624,4672,4648)} | Select-Object TimeCreated,Id,ProviderName',
+        'Get-WinEvent -LogName "Microsoft-Windows-Sysmon/Operational" | Where-Object {$_.Id -in @(1,3,11,22)} | Select-Object -First 30',
+      ]
+    }
+  },
+  {
+    id: 'd2-active-directory-deep-dive', title: 'Active Directory — Kerberos sem Decoreba', day: 2, topic: 'Active Directory',
+    type: 'table',
+    content: {
+      theory: [
+        'Kerberos é um sistema de tickets. O usuário prova quem é para o KDC, recebe um TGT, depois troca esse TGT por tickets de serviço. Ataques de roasting exploram tickets que podem ser quebrados offline.',
+        'LDAP é a lista telefônica do domínio. BloodHound e várias ferramentas usam LDAP/RPC para transformar relações em caminhos de ataque.',
+      ],
+      table: {
+        headers: ['Conceito', 'Porta', 'Função', 'Por que importa em CTF'],
+        rows: [
+          ['DNS do domínio', '53', 'Resolve DC e serviços via nomes.', 'Sem DNS correto, ferramentas AD falham ou demoram.'],
+          ['Kerberos', '88', 'Emite TGT e TGS.', 'Base de AS-REP Roasting e Kerberoasting.'],
+          ['LDAP/LDAPS', '389/636', 'Consulta usuários, grupos, SPNs e atributos.', 'Enumeração e BloodHound dependem disso.'],
+          ['SMB', '445', 'Shares, SYSVOL, políticas e execução remota.', 'GPP, arquivos e movimentação lateral.'],
+          ['RPC', '135 + dinâmicas', 'Enumeração de usuários e grupos.', 'rpcclient pode funcionar sem credenciais em labs.'],
+          ['WinRM', '5985/5986', 'Shell remoto PowerShell.', 'Acesso inicial ou pós-credenciais com evil-winrm.'],
+          ['MSSQL', '1433', 'Banco com autenticação integrada ou SQL.', 'xp_cmdshell, hashes NetNTLM e credenciais.'],
+        ]
+      },
+      tips: [
+        'Sempre configure /etc/hosts com IP, hostname e domínio do DC antes de rodar ferramentas Impacket.',
+        'Se Kerberos falhar por clock skew, sincronize horário com o DC no ambiente de laboratório.',
+      ]
+    }
+  },
+  {
+    id: 'd2-ad-tools-command-guide', title: 'Active Directory — Ferramentas e Comandos', day: 2, topic: 'Active Directory',
+    type: 'commands',
+    content: {
+      theory: [
+        'A ordem segura em CTF é: descobrir domínio, listar usuários, testar roast, validar credenciais, coletar BloodHound, ler caminho e só então executar ação de impacto no lab.',
+      ],
+      commands: [
+        '# Descobrir nomes de domínio e DC pelo Nmap/SMB',
+        'nmap -sC -sV -p53,88,135,139,389,445,464,593,636,3268,5985 <IP>',
+        '',
+        '# RPC sem credenciais, quando permitido pelo lab',
+        'rpcclient -U "" -N <IP>',
+        'rpcclient $> enumdomusers',
+        'rpcclient $> enumdomgroups',
+        '',
+        '# SMB anônimo e coleta recursiva controlada',
+        'smbclient -L //<IP> -N',
+        'smbclient //<IP>/Replication -N',
+        'smb: \\> recurse ON',
+        'smb: \\> prompt OFF',
+        'smb: \\> mget *',
+        '',
+        '# AS-REP Roasting',
+        'GetNPUsers.py <domain>/ -usersfile users.txt -no-pass -dc-ip <IP> -outputfile asrep.txt',
+        'hashcat -m 18200 asrep.txt /usr/share/wordlists/rockyou.txt',
+        '',
+        '# Kerberoasting com credencial válida',
+        'GetUserSPNs.py <domain>/<user>:<pass> -dc-ip <IP> -request -outputfile kerb.txt',
+        'hashcat -m 13100 kerb.txt /usr/share/wordlists/rockyou.txt',
+        '',
+        '# Coleta BloodHound',
+        'bloodhound-python -d <domain> -u <user> -p <pass> -ns <dc_ip> -c All',
+        '',
+        '# Validar credenciais sem executar comando remoto',
+        'crackmapexec smb <IP> -d <domain> -u <user> -p <pass>',
+        'crackmapexec winrm <IP> -d <domain> -u <user> -p <pass>',
+      ],
+      table: {
+        headers: ['Ferramenta', 'Use quando', 'Resultado esperado'],
+        rows: [
+          ['rpcclient', 'Quer usuários/grupos via RPC, às vezes sem credenciais.', 'RID, usernames e grupos do domínio.'],
+          ['smbclient', 'Quer listar shares e baixar arquivos.', 'SYSVOL, Replication, backups, scripts e XMLs.'],
+          ['Impacket', 'Quer interagir com protocolos AD em CTF.', 'Hashes, tickets, exec remoto e dumps em lab.'],
+          ['BloodHound', 'Quer entender relações e caminho de privilégio.', 'Grafo com arestas como GenericAll, WriteDACL, CanRDP.'],
+          ['crackmapexec', 'Quer validar credenciais e permissões rapidamente.', 'Pwn3d, shares, users, policy e protocolos disponíveis.'],
+        ]
+      }
+    }
+  },
+  {
+    id: 'd2-forensics-artifact-workflow', title: 'Forense — Artefato Certo para Cada Pergunta', day: 2, topic: 'Forense',
+    type: 'table',
+    content: {
+      theory: [
+        'Forense não começa abrindo tudo. Começa com pergunta. A pergunta define artefato, ferramenta e evidência.',
+      ],
+      table: {
+        headers: ['Pergunta', 'Windows', 'Linux', 'O que comprova'],
+        rows: [
+          ['Um programa executou?', 'Prefetch, AmCache, ShimCache, Sysmon 1.', 'bash_history, auditd, journalctl, timestamps.', 'Nome, caminho, hash e horário aproximado.'],
+          ['Um usuário logou?', 'Security 4624/4625, RDP logs.', 'auth.log, wtmp, btmp, last.', 'Usuário, origem, tipo de logon e horário.'],
+          ['Arquivo foi criado/deletado?', '$MFT, USN Journal, Recycle Bin, Sysmon 11/23.', 'ext journal, timestamps, auditd, find.', 'Nome, path, MACB e dono.'],
+          ['Houve persistência?', 'Run Keys, Services, Scheduled Tasks.', 'cron, systemd services, authorized_keys.', 'Mecanismo que executa após reboot/login.'],
+          ['Houve exfiltração?', 'Browser history, firewall, Sysmon 3, PCAP.', 'proxy logs, shell history, netflow, PCAP.', 'Destino, volume e ferramenta/processo.'],
+          ['Credenciais foram acessadas?', 'LSASS access, Security 4672, Sysmon 10.', '/etc/shadow access, sudo logs.', 'Processo acessando fonte de credenciais.'],
+        ]
+      },
+      commands: [
+        'sha256sum imagem.dd',
+        'mmls imagem.dd',
+        'fls -r imagem.dd',
+        'icat imagem.dd <inode> > arquivo_extraido',
+        'Get-WinEvent -Path caso.evtx | Select-Object -First 20',
+      ]
+    }
+  },
+  {
+    id: 'd2-pcap-decision-guide', title: 'PCAP — Como Sair do Caos para Evidência', day: 2, topic: 'Forense',
+    type: 'commands',
+    content: {
+      theory: [
+        'PCAP tem volume demais. O método é: visão geral, conversas, protocolos, sessões, objetos, credenciais, timeline.',
+      ],
+      commands: [
+        '# Visão geral por terminal',
+        'capinfos captura.pcap',
+        'tshark -r captura.pcap -q -z io,phs',
+        'tshark -r captura.pcap -q -z conv,tcp',
+        '',
+        '# Filtros Wireshark essenciais',
+        'dns',
+        'http.request',
+        'http.request.method == "POST"',
+        'http contains "password"',
+        'ftp || ftp-data',
+        'smtp || imap || pop',
+        'tcp.stream eq 3',
+        'ip.addr == <IP>',
+        '',
+        '# Extração simples com tshark',
+        'tshark -r captura.pcap -Y "http.request" -T fields -e frame.time -e ip.src -e http.host -e http.request.uri',
+        'tshark -r captura.pcap -Y "ftp.request.command == USER || ftp.request.command == PASS" -T fields -e frame.time -e ftp.request.command -e ftp.request.arg',
+      ],
+      table: {
+        headers: ['Achado', 'Interpretação', 'Evidência para relatório'],
+        rows: [
+          ['POST para /login', 'Tentativa de autenticação.', 'Timestamp, host, URI, parâmetros e resposta.'],
+          ['FTP USER/PASS', 'Credenciais em texto claro.', 'Stream, usuário e senha.'],
+          ['DNS raro repetido', 'Possível beacon ou descoberta.', 'Domínio, frequência e IP resolvido.'],
+          ['Transferência grande', 'Possível download ou exfiltração.', 'Origem, destino, protocolo e bytes.'],
+        ]
+      }
+    }
+  },
+
+  // ==================== TRILHA INTENSIVA - DIA 3 ====================
+  {
+    id: 'd3-intensive-10h-plan', title: 'Dia 3 Intensivo — Roteiro de 10h30', day: 3, topic: 'Forense',
+    type: 'table',
+    content: {
+      theory: [
+        'O Dia 3 é sobre encadeamento avançado: memória, malware, MITRE, privilege escalation e Active Directory difícil. Você aprende a justificar uma cadeia inteira, não só achar um comando que funciona.',
+      ],
+      table: {
+        headers: ['Tempo', 'Bloco', 'O que aprender', 'Entrega obrigatória'],
+        rows: [
+          ['0:00-1:30', 'Volatility básico e triagem', 'info, pslist, pstree, cmdline, netscan, filescan e dumpfiles.', 'Tabela processo -> evidência -> suspeita.'],
+          ['1:30-2:45', 'Memória para malware', 'malfind, dlllist, handles, processos órfãos, encoded commands e conexões.', 'Uma hipótese de infecção com prova.'],
+          ['2:45-4:00', 'Malware estático seguro', 'file, strings, hashes, PE headers, imports, packers, IOCs e limites da análise.', 'IOC list com hash, strings, URLs e comportamento provável.'],
+          ['4:00-5:15', 'MITRE ATT&CK aplicado', 'Tática vs técnica, mapeamento por evidência, como não chutar T-number.', '5 evidências mapeadas para técnicas.'],
+          ['5:15-6:45', 'Privesc Linux e Windows', 'SUID, capabilities, sudo, cron, tokens, serviços, registry e permissões.', 'Árvore de decisão de escalada.'],
+          ['6:45-7:45', 'AD avançado', 'ForceChangePassword, SeBackupPrivilege, NTDS, ADCS, MSSQL e coerção NTLM em labs.', 'Fluxo de ataque desenhado com pré-requisitos.'],
+          ['7:45-10:30', 'Labs Hard', 'Blackfield, Sizzle, Querier, Mantis, Reel2 e Multimaster com timeboxing.', 'Write-up com falhas, pivôs e evidência final.'],
+        ]
+      }
+    }
+  },
+  {
+    id: 'd3-volatility-plugin-map', title: 'Volatility — Plugin Certo para Cada Hipótese', day: 3, topic: 'Forense',
+    type: 'table',
+    content: {
+      theory: [
+        'Volatility é uma bancada de investigação. Você escolhe plugin por hipótese: processo, rede, arquivo, DLL, memória injetada ou credencial.',
+      ],
+      table: {
+        headers: ['Hipótese', 'Plugin', 'Comando base', 'Como interpretar'],
+        rows: [
+          ['Preciso identificar o sistema.', 'windows.info', 'python3 vol.py -f mem.raw windows.info', 'Kernel, build, símbolos e horário ajudam a validar dump.'],
+          ['Processo suspeito existe.', 'windows.pslist', 'python3 vol.py -f mem.raw windows.pslist', 'Processos ativos, PID, PPID e horários.'],
+          ['Cadeia pai-filho é estranha.', 'windows.pstree', 'python3 vol.py -f mem.raw windows.pstree', 'Office gerando cmd, webserver gerando shell, processo sem pai.'],
+          ['Preciso ver argumentos.', 'windows.cmdline', 'python3 vol.py -f mem.raw windows.cmdline', 'EncodedCommand, paths temporários, scripts e URLs.'],
+          ['Há conexão de rede.', 'windows.netscan', 'python3 vol.py -f mem.raw windows.netscan', 'IP externo, porta, processo e estado.'],
+          ['Pode haver injeção.', 'windows.malfind', 'python3 vol.py -f mem.raw windows.malfind', 'Região RWX, MZ header e bytes suspeitos.'],
+          ['Preciso extrair arquivo.', 'windows.filescan + dumpfiles', 'python3 vol.py -f mem.raw windows.filescan', 'Buscar offset e extrair com --physaddr ou --virtaddr.'],
+          ['Preciso listar DLLs.', 'windows.dlllist', 'python3 vol.py -f mem.raw windows.dlllist --pid <PID>', 'DLL fora de System32 ou path temporário é sinal.'],
+          ['Credenciais locais importam.', 'windows.hashdump', 'python3 vol.py -f mem.raw windows.hashdump', 'Hashes locais, quando disponíveis no dump.'],
+        ]
+      },
+      tips: [
+        'Não conclua malware só por um processo estranho. Combine pstree, cmdline, netscan e malfind.',
+        'Guarde PID e timestamp. Eles conectam memória, disco e logs.',
+      ]
+    }
+  },
+  {
+    id: 'd3-malware-safe-workflow', title: 'Malware — Workflow Seguro de Análise Estática', day: 3, topic: 'Malware',
+    type: 'commands',
+    content: {
+      theory: [
+        'Neste curso, análise de malware é feita em amostras de laboratório e com foco defensivo. A ordem segura é coletar hash, identificar formato, extrair strings, observar imports e descrever comportamento provável sem executar fora de sandbox.',
+      ],
+      commands: [
+        '# Identificação inicial',
+        'file amostra.bin',
+        'sha256sum amostra.bin',
+        'md5sum amostra.bin',
+        '',
+        '# Strings e indicadores',
+        'strings -a amostra.bin | less',
+        'strings -a amostra.bin | grep -Ei "http|https|powershell|cmd.exe|/bin/sh|token|password"',
+        'strings -el amostra.bin | grep -Ei "http|powershell|cmd.exe"',
+        '',
+        '# Estrutura de binário Linux',
+        'readelf -h amostra.elf',
+        'readelf -s amostra.elf | head',
+        'objdump -d amostra.elf | head -80',
+        '',
+        '# Estrutura geral e bytes iniciais',
+        'xxd -l 256 amostra.bin',
+        'binwalk amostra.bin',
+        '',
+        '# Empacotamento comum',
+        'upx -t amostra.bin',
+        'upx -d amostra.bin -o unpacked.bin',
+      ],
+      table: {
+        headers: ['Achado', 'Interpretação defensiva', 'Próximo passo'],
+        rows: [
+          ['URL ou IP em strings', 'Possível C2, download ou webhook.', 'Registrar IOC e buscar em PCAP/logs.'],
+          ['PowerShell EncodedCommand', 'Execução ofuscada em Windows.', 'Decodificar em ambiente seguro e mapear MITRE.'],
+          ['UPX', 'Binário empacotado.', 'Testar desempacotamento e repetir strings.'],
+          ['Imports de rede', 'Capacidade de conexão.', 'Correlacionar com netscan, Sysmon 3 ou firewall.'],
+          ['Registry Run', 'Possível persistência.', 'Mapear para T1547.001 e procurar evidência no host.'],
+        ]
+      }
+    }
+  },
+  {
+    id: 'd3-privesc-linux-decision-tree', title: 'Privesc Linux — Árvore de Decisão', day: 3, topic: 'Red Team',
+    type: 'commands',
+    content: {
+      theory: [
+        'Escalada Linux é investigação local. Cada etapa tenta responder se você já tem uma permissão que vira root ou se precisa encontrar configuração fraca.',
+      ],
+      commands: [
+        '# Identidade e sistema',
+        'whoami; id; hostname',
+        'uname -a; cat /etc/os-release',
+        '',
+        '# Sudo e grupos',
+        'sudo -l',
+        'groups',
+        '',
+        '# SUID, SGID e capabilities',
+        'find / -perm -4000 -type f 2>/dev/null',
+        'find / -perm -2000 -type f 2>/dev/null',
+        'getcap -r / 2>/dev/null',
+        '',
+        '# Arquivos e diretórios graváveis',
+        'find / -writable -type d 2>/dev/null | grep -v "/proc"',
+        'find / -writable -type f 2>/dev/null | grep -v "/proc"',
+        '',
+        '# Cron e serviços',
+        'cat /etc/crontab',
+        'ls -la /etc/cron.d /etc/cron.daily /var/spool/cron 2>/dev/null',
+        'systemctl list-timers 2>/dev/null',
+        '',
+        '# Segredos prováveis',
+        'grep -R "password\\|passwd\\|pwd\\|secret\\|token" /home /opt /var/www 2>/dev/null',
+        'find / -name "*.bak" -o -name "*.old" -o -name "*.zip" 2>/dev/null',
+      ],
+      table: {
+        headers: ['Se encontrar', 'O que significa', 'Como validar'],
+        rows: [
+          ['sudo NOPASSWD', 'Comando permitido pode executar como root.', 'Consultar GTFOBins e testar no lab.'],
+          ['SUID incomum', 'Binário roda como dono, talvez root.', 'Ver dono, versão e funções perigosas.'],
+          ['cap_setuid+ep', 'Processo pode mudar UID.', 'Testar binário com técnica documentada.'],
+          ['Script cron gravável', 'Root executa algo que você altera.', 'Confirmar frequência e dono antes de editar no lab.'],
+          ['Credencial em config', 'Reaproveitamento de senha.', 'Testar serviço local ou usuário relacionado.'],
+        ]
+      }
+    }
+  },
+  {
+    id: 'd3-privesc-windows-decision-tree', title: 'Privesc Windows — Árvore de Decisão', day: 3, topic: 'Red Team',
+    type: 'commands',
+    content: {
+      theory: [
+        'No Windows, privilégio vem de token, grupo, serviço, registry, credenciais ou patch. A enumeração precisa separar o que é informação do que é vetor explorável.',
+      ],
+      commands: [
+        '# Identidade e privilégios',
+        'whoami /user',
+        'whoami /groups',
+        'whoami /priv',
+        '',
+        '# Sistema e patches',
+        'systeminfo',
+        'wmic qfe get Caption,Description,HotFixID,InstalledOn',
+        '',
+        '# Serviços e caminhos',
+        'wmic service get name,displayname,pathname,startmode | findstr /i "auto"',
+        'sc qc <ServiceName>',
+        'sc query <ServiceName>',
+        '',
+        '# AlwaysInstallElevated',
+        'reg query HKCU\\SOFTWARE\\Policies\\Microsoft\\Windows\\Installer /v AlwaysInstallElevated',
+        'reg query HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\Installer /v AlwaysInstallElevated',
+        '',
+        '# Credenciais e histórico',
+        'cmdkey /list',
+        'dir /s /b *pass* *cred* *config* 2>nul',
+        'findstr /si "password pwd secret token" *.txt *.ini *.config 2>nul',
+        '',
+        '# Rede local',
+        'netstat -ano',
+        'tasklist /svc',
+      ],
+      table: {
+        headers: ['Achado', 'Por que importa', 'Validação segura em lab'],
+        rows: [
+          ['SeImpersonatePrivilege', 'Pode permitir impersonation para SYSTEM em versões vulneráveis.', 'Ver OS, contexto de serviço e técnica compatível.'],
+          ['Service path não aspado', 'Windows pode executar binário em caminho parcial.', 'Confirmar permissão de escrita no diretório.'],
+          ['Serviço com binPath alterável', 'Usuário pode trocar executável do serviço.', 'accesschk ou sc sdshow para permissões.'],
+          ['AlwaysInstallElevated em HKCU e HKLM', 'MSI pode instalar como admin.', 'Ambas as chaves precisam estar ativas.'],
+          ['Credenciais salvas', 'Podem abrir WinRM, RDP, SMB ou usuário local.', 'Validar com comando sem impacto.'],
+        ]
+      }
+    }
+  },
+  {
+    id: 'd3-advanced-ad-abuse-map', title: 'AD Avançado — Pré-Requisitos e Ferramentas', day: 3, topic: 'Active Directory',
+    type: 'table',
+    content: {
+      theory: [
+        'Técnicas avançadas de AD não são feitiços: cada uma exige uma permissão específica. Aprenda o pré-requisito, a evidência e a ferramenta apropriada.',
+      ],
+      table: {
+        headers: ['Técnica', 'Pré-requisito', 'Ferramenta comum', 'Evidência de que faz sentido'],
+        rows: [
+          ['ForceChangePassword', 'Aresta no BloodHound sobre uma conta.', 'net rpc password, bloodyAD.', 'BloodHound mostra ForceChangePassword do usuário atual.'],
+          ['DCSync', 'Replicating Directory Changes ou equivalente.', 'secretsdump.py.', 'BloodHound mostra CanDCSync ou WriteDACL explorável.'],
+          ['SeBackupPrivilege', 'Token com privilégio de backup.', 'diskshadow, robocopy /b, secretsdump offline.', 'whoami /priv mostra SeBackupPrivilege enabled/available.'],
+          ['Kerberoasting', 'Credencial válida e conta com SPN.', 'GetUserSPNs.py, hashcat.', 'LDAP revela servicePrincipalName.'],
+          ['AS-REP Roasting', 'Conta sem pré-autenticação Kerberos.', 'GetNPUsers.py, hashcat.', 'UserAccountControl com DONT_REQ_PREAUTH.'],
+          ['ADCS abuse', 'Template vulnerável ou enrolamento permissivo.', 'certipy.', 'Enumeração mostra ESC1/ESC8 ou template fraco.'],
+          ['MSSQL xp_cmdshell', 'Credencial SQL/sysadmin ou misconfig.', 'mssqlclient.py.', 'Login no MSSQL e permissão para habilitar xp_cmdshell.'],
+          ['Responder/NTLM capture', 'Coerção ou share que força autenticação em lab.', 'responder, ntlmrelayx.', 'Host Windows tentando autenticar no seu listener autorizado.'],
+        ]
+      },
+      tips: [
+        'Se você não sabe o pré-requisito, ainda não está pronto para executar a técnica. Volte para enumeração.',
+        'BloodHound mostra caminhos possíveis, não garantias. Valide cada aresta antes de agir.',
+      ]
+    }
+  },
+
+  // ==================== TRILHA INTENSIVA - DIA 4 ====================
+  {
+    id: 'd4-intensive-10h-plan', title: 'Dia 4 Intensivo — Roteiro de 10h30', day: 4, topic: 'Revisão',
+    type: 'table',
+    content: {
+      theory: [
+        'O Dia 4 transforma conhecimento em desempenho. A meta é revisar, simular pressão, documentar e corrigir lacunas sem abrir novas frentes desnecessárias.',
+      ],
+      table: {
+        headers: ['Tempo', 'Bloco', 'O que treinar', 'Entrega obrigatória'],
+        rows: [
+          ['0:00-1:00', 'Revisão ativa', 'Portas, ferramentas, Event IDs, AD, forense, privesc e MITRE por perguntas.', 'Flashcards respondidos sem consulta.'],
+          ['1:00-2:00', 'Comandos explicados', 'Cada aluno explica 15 comandos: quando usar, saída esperada e erro comum.', 'Tabela comando -> intenção -> evidência.'],
+          ['2:00-3:30', 'Simulado Blue Team', 'Receber logs/PCAP e montar timeline com evidência.', 'Timeline com hipótese e conclusão.'],
+          ['3:30-5:00', 'Simulado Red Team', 'Reconhecimento e enumeração com tempo limitado.', 'Scan salvo, árvore de hipóteses e próximos passos.'],
+          ['5:00-6:30', 'Relatório técnico', 'Sumário executivo, escopo, evidências, impacto, MITRE e recomendações.', 'Finding completo com evidência.'],
+          ['6:30-8:30', 'Speed runs', 'Repetir labs conhecidos com cronômetro e documentação em tempo real.', 'Tempo, bloqueios e comandos usados.'],
+          ['8:30-10:30', 'Debrief e lacunas', 'Revisar erros, refazer pontos fracos e consolidar checklist final.', 'Plano individual de reforço.'],
+        ]
+      }
+    }
+  },
+  {
+    id: 'd4-command-mastery-index', title: 'Comandos Essenciais — O Que Cada Um Ensina', day: 4, topic: 'Revisão',
+    type: 'table',
+    content: {
+      table: {
+        headers: ['Comando', 'Aprendizado', 'Quando usar', 'Erro comum'],
+        rows: [
+          ['nmap -sC -sV -oN scan.txt <IP>', 'Serviços e versões iniciais.', 'Primeiro scan TCP.', 'Não salvar saída.'],
+          ['nmap -p- --min-rate 5000 <IP>', 'Portas TCP fora do comum.', 'Depois do scan inicial.', 'Não confirmar portas com -sV.'],
+          ['curl -i -L http://<host>/', 'Headers, redirects e cookies.', 'Antes de fuzzing web.', 'Ignorar Set-Cookie e Location.'],
+          ['ffuf -u http://<host>/FUZZ -w wordlist.txt', 'Rotas e arquivos escondidos.', 'Após enumeração manual.', 'Não filtrar falso positivo.'],
+          ['smbclient -L //<IP> -N', 'Shares SMB anônimos.', 'Quando porta 445 aberta.', 'Não tentar -N antes de credenciais.'],
+          ['rpcclient -U "" -N <IP>', 'Usuários e grupos via RPC.', 'DC/Samba permissivo em lab.', 'Não salvar usernames.'],
+          ['GetNPUsers.py <domain>/ -usersfile users.txt -no-pass', 'AS-REP Roasting.', 'Depois de obter lista de usuários.', 'Rodar sem domínio/DNS corretos.'],
+          ['GetUserSPNs.py <domain>/<user>:<pass> -request', 'Kerberoasting.', 'Com credencial válida.', 'Assumir que todo hash vai quebrar rápido.'],
+          ['bloodhound-python -d <domain> -u <user> -p <pass> -c All', 'Relações AD.', 'Depois de credencial válida.', 'Executar e não interpretar arestas.'],
+          ['sudo -l', 'Privilégios sudo.', 'Primeiro minuto pós-shell Linux.', 'Esquecer porque shell é limitado.'],
+          ['find / -perm -4000 -type f 2>/dev/null', 'SUID.', 'Privesc Linux.', 'Explorar binário comum sem contexto.'],
+          ['whoami /priv', 'Privilégios de token.', 'Primeiro minuto pós-shell Windows.', 'Não diferenciar enabled de disabled.'],
+          ['python3 vol.py -f mem.raw windows.pstree', 'Cadeia de processos.', 'Triagem de memória.', 'Olhar lista sem pai-filho.'],
+          ['hashcat -m 18200 asrep.txt rockyou.txt', 'Cracking AS-REP.', 'Após GetNPUsers.', 'Usar modo de hash errado.'],
+        ]
+      }
+    }
+  },
+  {
+    id: 'd4-report-rubric', title: 'Relatório — Rubrica de Qualidade', day: 4, topic: 'Revisão',
+    type: 'table',
+    content: {
+      theory: [
+        'Relatório bom não é longo; é verificável. Cada afirmação precisa de evidência, horário, sistema afetado e impacto.',
+      ],
+      table: {
+        headers: ['Seção', 'Precisa conter', 'Sinal de qualidade'],
+        rows: [
+          ['Sumário executivo', 'O que aconteceu, impacto e estado final.', 'Uma pessoa não técnica entende o risco.'],
+          ['Escopo', 'Alvos, ambiente autorizado e limitações.', 'Fica claro que a atividade foi permitida.'],
+          ['Timeline', 'Timestamp, evento, fonte e evidência.', 'Eventos contam uma história coerente.'],
+          ['Achado técnico', 'Descrição, passos reproduzíveis, evidência e impacto.', 'Outra pessoa consegue validar.'],
+          ['MITRE ATT&CK', 'Tática, técnica e motivo do mapeamento.', 'T-number apoiado por comportamento real.'],
+          ['Recomendação', 'Ação concreta, prioridade e dono provável.', 'Não é genérica como "melhorar segurança".'],
+          ['Anexos', 'Comandos, outputs relevantes, hashes, screenshots e PCAP/logs.', 'Evidência preservada sem poluir o texto principal.'],
+        ]
+      },
+      tips: [
+        'Troque "parece comprometido" por "houve logon 4624 tipo 3 do usuário X às 03:14 a partir do IP Y".',
+        'Troque "rodei ferramenta" por "a ferramenta confirmou porta 445 aberta com SMB e share Replication legível".',
+      ]
+    }
+  },
+  {
+    id: 'd4-exam-timeboxing', title: 'Simulado — Gestão de Tempo e Decisão', day: 4, topic: 'Revisão',
+    type: 'checklist',
+    content: {
+      theory: [
+        'Pressão de tempo destrói quem não tem ritual. Use blocos fixos para evitar ficar preso em uma hipótese ruim.',
+      ],
+      checklist: [
+        '0-10 min: criar pasta, anotar escopo, iniciar scan inicial e scan de todas as portas.',
+        '10-25 min: ler Nmap, adicionar hostnames, abrir serviços manualmente.',
+        '25-45 min: enumeração específica por serviço aberto, salvando evidências.',
+        '45-60 min: escolher um vetor principal e um vetor reserva.',
+        '60-90 min: explorar apenas hipótese com evidência suficiente em ambiente autorizado.',
+        'Após shell: whoami/id ou whoami /priv imediatamente.',
+        'A cada 20 min travado: escrever o que sabe, o que tentou e qual pergunta falta responder.',
+        'Nunca deixar documentação para o final; registrar comando e resultado enquanto acontece.',
+        'No debrief: separar erro de conhecimento, erro de atenção e erro de método.',
+      ],
+      tips: [
+        'Timeboxing não é desistir. É impedir que uma hipótese fraca consuma o dia inteiro.',
+      ]
+    }
+  },
+  {
+    id: 'd4-full-knowledge-map', title: 'Mapa Final — Como Todos os Assuntos se Conectam', day: 4, topic: 'Revisão',
+    type: 'table',
+    content: {
+      table: {
+        headers: ['Área', 'Pergunta central', 'Ferramentas', 'Evidência produzida'],
+        rows: [
+          ['Redes', 'Que portas e protocolos existem?', 'nmap, Wireshark, tcpdump, tshark.', 'Portas, serviços, conversas, pacotes.'],
+          ['Web', 'Como a aplicação recebe e responde dados?', 'curl, navegador, Burp, ffuf, gobuster.', 'Headers, rotas, parâmetros, status codes.'],
+          ['Linux', 'Que permissões e configurações viram privilégio?', 'sudo, find, getcap, ps, ss, journalctl.', 'SUID, capabilities, cron, logs, processos.'],
+          ['Windows', 'Quem autenticou e que processo executou?', 'Event Viewer, PowerShell, Sysmon, whoami.', 'Event IDs, tokens, serviços, command line.'],
+          ['Active Directory', 'Quais identidades e relações criam caminho de ataque?', 'rpcclient, ldapsearch, Impacket, BloodHound.', 'Usuários, grupos, SPNs, arestas e tickets.'],
+          ['Forense', 'O que aconteceu, quando e qual artefato prova?', 'Autopsy, sleuthkit, Volatility, Wazuh.', 'Timeline, arquivos, processos, memória, alertas.'],
+          ['Malware', 'O binário tenta fazer o quê?', 'file, strings, hashes, readelf, objdump.', 'IOCs, imports, URLs, comportamento provável.'],
+          ['MITRE', 'Qual técnica descreve o comportamento?', 'ATT&CK Matrix, relatório técnico.', 'Tática, técnica, evidência e impacto.'],
+        ]
+      }
+    }
+  },
+];
+
+const expandedTheorySlides: Slide[] = [
+  {
+    id: 'd1-deep-theory-recon-model', title: 'Teoria Profunda — Como Pensar Reconhecimento', day: 1, topic: 'Ferramentas',
+    type: 'theory',
+    content: {
+      theory: [
+        'Reconhecimento não é "rodar Nmap e ver no que dá". Reconhecimento é construir um modelo do alvo. Esse modelo começa simples: existe um IP, talvez um domínio, talvez um conjunto de portas. A cada evidência nova, você atualiza o modelo: "porta 80 com Apache", "porta 445 com SMB", "hostname revelado por certificado", "aplicação redireciona para vhost", "FTP aceita anonymous". O valor está menos no comando e mais na interpretação que vem depois dele.',
+        'Em CTF e laboratório, a primeira armadilha é pular da primeira porta aberta diretamente para exploração. Isso cria buracos de raciocínio. Se você vê HTTP na 80, SMB na 445 e SSH na 22, não significa que HTTP é o vetor. Significa que existem três superfícies de enumeração. Você precisa extrair evidências de cada uma: headers e rotas no HTTP, shares e permissões no SMB, versão e política de autenticação no SSH. Só depois escolhe uma hipótese principal.',
+        'Uma boa enumeração sempre responde quatro perguntas: o que existe, qual versão/tecnologia, que dado ou comportamento foi exposto e qual decisão isso permite. Por exemplo: "SMB 445 aberto" ainda é só existência. "Share Replication acessível sem senha e contém Groups.xml" já é evidência acionável. "HTTP 200 em /admin" ainda é só caminho. "Form de login aceita credenciais padrão documentadas no painel" já é hipótese testável.',
+        'O ciclo correto é repetitivo: descobrir, enumerar, validar, documentar. Descobrir é achar portas/hosts. Enumerar é conversar com cada serviço no idioma dele. Validar é confirmar se o achado realmente funciona. Documentar é escrever de onde veio a evidência. Sem documentação, o aluno até pode pegar uma flag, mas não aprendeu a explicar o ataque nem a defender contra ele.',
+        'Durante os labs do Dia 1, você verá esse ciclo em formas diferentes: Cap depende de perceber um padrão em URL e analisar PCAP; Nibbles depende de ler HTML e entender upload; Jerry depende de reconhecer Tomcat Manager; Devel depende de conectar FTP com IIS; Blue depende de SMBv1/MS17-010; Lame depende de versão vulnerável do Samba. Nada disso deve parecer surpresa quando chegar ao lab.',
+      ],
+      tips: [
+        'Regra prática: se você não consegue explicar por que rodou o comando, ainda não deveria rodá-lo.',
+        'Regra de prova: nenhuma exploração antes de pelo menos uma enumeração manual por serviço aberto.',
+      ]
+    }
+  },
+  {
+    id: 'd1-deep-theory-network-web-linux', title: 'Teoria Profunda — Redes, Web e Linux em Uma Cadeia', day: 1, topic: 'Redes',
+    type: 'theory',
+    content: {
+      theory: [
+        'TCP/IP é a base porque todo serviço do lab aparece como uma conversa de rede. TCP usa conexão e controle de estado; por isso Nmap consegue inferir open, closed e filtered observando SYN, SYN-ACK, RST e ausência de resposta. UDP não tem esse mesmo handshake, então respostas ambíguas são normais. Quando você entende isso, deixa de tratar "filtered" ou "open|filtered" como erro e passa a tratar como dado parcial.',
+        'Portas são convenções, não garantias. Porta 80 normalmente é HTTP, mas uma aplicação pode rodar em 8080, 8000, 5000 ou qualquer outra. Porta 445 normalmente indica SMB, mas a versão, o signing, os shares e a autenticação importam mais que o número. Porta 21 indica FTP, mas o detalhe que muda o jogo é se anonymous funciona, se há permissão de escrita e se as credenciais trafegam em claro.',
+        'Web exige duas leituras: leitura de protocolo e leitura de aplicação. No protocolo, você observa status code, headers, cookies, redirects, métodos e content type. Na aplicação, você observa rotas, formulários, mensagens de erro, comentários HTML, upload, autenticação e autorização. Muitas máquinas fáceis do Hack The Box ensinam justamente isso: o vetor não está escondido em uma técnica avançada; está em uma pista simples ignorada por quem só roda ferramenta.',
+        'Linux entra depois do foothold, mas precisa ser ensinado antes. Ao obter uma shell, o aluno precisa saber onde está, quem é, quais grupos possui, que binários têm SUID, que capabilities existem, que cron jobs executam e que arquivos de configuração podem conter senhas. Esse conhecimento explica a escalada da Cap por capability no Python e a Nibbles por sudo NOPASSWD em script controlável.',
+        'A ponte entre rede, web e Linux é o fluxo: a rede revela serviço, a aplicação revela credencial ou execução, o sistema operacional revela privilégio. Se o aluno entende o fluxo, ele não memoriza "Cap é FTP + Python capability"; ele aprende que tráfego pode vazar credencial e capability mal configurada pode virar root.',
+      ],
+      table: {
+        headers: ['Conceito', 'O que precisa ficar claro', 'Onde aparece nos labs'],
+        rows: [
+          ['TCP/portas', 'Estado open/filtered muda a estratégia de enumeração.', 'Todos os labs começam por scan e leitura de portas.'],
+          ['FTP em texto claro', 'USER/PASS podem ser recuperados em PCAP.', 'Cap.'],
+          ['Comentários HTML', 'Código-fonte pode revelar diretórios e pistas.', 'Nibbles.'],
+          ['Upload inseguro', 'Arquivo enviado pode ser executado se validação for fraca.', 'Nibbles e Devel.'],
+          ['Manager exposto', 'Painel administrativo com credenciais fracas vira RCE.', 'Jerry.'],
+          ['SUID/capabilities/sudo', 'Privilégios locais mal configurados viram root.', 'Cap e Nibbles.'],
+          ['SMB vulnerável', 'Versão e patch level importam antes de explorar.', 'Blue e Lame.'],
+        ]
+      }
+    }
+  },
+  {
+    id: 'd1-lab-bridge-all-machines', title: 'Antes dos Labs — Tudo que Aparece no Dia 1', day: 1, topic: 'Labs',
+    type: 'table',
+    content: {
+      theory: [
+        'Use esta página como contrato didático: se algo aparece nos labs do Dia 1, o conceito precisa ter sido visto antes. O aluno não precisa decorar a resolução, mas precisa reconhecer o tipo de evidência e saber qual ferramenta conversa com aquele serviço.',
+      ],
+      table: {
+        headers: ['Lab', 'Conceitos ensinados antes', 'Ferramentas esperadas', 'O aluno deve saber explicar antes de começar'],
+        rows: [
+          ['Cap', 'HTTP com padrão de URL, PCAP, FTP em texto claro, SSH com senha reaproveitada, Linux capabilities.', 'nmap, curl/navegador, Wireshark/tshark, ftp, ssh, getcap.', 'Como um PCAP revela credenciais e por que cap_setuid+ep em Python permite mudar UID para root.'],
+          ['Nibbles', 'Leitura de HTML, diretório escondido, CMS, painel admin, upload inseguro, reverse shell em lab, sudo NOPASSWD.', 'curl, gobuster/ffuf, navegador, netcat, sudo -l.', 'Por que comentário HTML é evidência e por que upload sem validação de extensão/content type permite execução.'],
+          ['Jerry', 'Apache Tomcat, Manager exposto, credenciais padrão, WAR/JSP, serviço Windows rodando com privilégio alto.', 'nmap, navegador, curl, msfvenom em lab, listener.', 'O que é um WAR, por que o Manager faz deploy e por que credenciais padrão são falha crítica.'],
+          ['Devel', 'FTP anonymous com escrita, raiz web IIS, ASPX executável, webshell em lab, enumeração Windows pós-shell.', 'ftp, curl/navegador, msfvenom em lab, nc, whoami/systeminfo.', 'Como escrita no FTP vira execução se o diretório servido pelo IIS interpreta ASPX.'],
+          ['Blue', 'SMBv1, MS17-010, diferença entre versão e vulnerabilidade confirmada, exploração controlada em lab.', 'nmap NSE, smb scripts, ferramentas de lab.', 'Por que SMBv1 é perigoso e por que é preciso confirmar vulnerabilidade antes de explorar.'],
+          ['Lame', 'Samba antigo, CVE por versão, command injection no username, validação de serviço.', 'nmap, smbclient, searchsploit em lab.', 'Como versão vulnerável direciona pesquisa, mas ainda exige confirmar contexto e serviço real.'],
+        ]
+      },
+      tips: [
+        'Se algum item desta tabela parecer estranho, volte para os slides de teoria antes de iniciar o lab.',
+      ]
+    }
+  },
+  {
+    id: 'd2-deep-theory-blue-ad', title: 'Teoria Profunda — Logs, Identidade e Active Directory', day: 2, topic: 'Active Directory',
+    type: 'theory',
+    content: {
+      theory: [
+        'O Dia 2 muda o centro de gravidade: em vez de olhar apenas para portas e serviços isolados, você passa a olhar para identidade. Em Active Directory, quase tudo é uma pergunta sobre quem pode fazer o quê, onde e por qual caminho. Um usuário pode não ser administrador, mas pode alterar a senha de outro. Um grupo pode não parecer poderoso, mas pode ter WriteDACL no domínio. Uma conta de serviço pode parecer comum, mas ter SPN e senha fraca.',
+        'Kerberos precisa ser entendido como fluxo, não como lista de termos. O usuário solicita um TGT ao KDC. Depois usa esse TGT para solicitar TGS para serviços. AS-REP Roasting explora contas que não exigem pré-autenticação e permitem obter material criptográfico sem senha. Kerberoasting explora contas de serviço com SPN: o ticket de serviço é criptografado com a senha da conta e pode ser quebrado offline. Em ambos os casos, o ataque real é contra senha fraca, não contra "Kerberos quebrado" de forma genérica.',
+        'Blue Team entra para ensinar evidência. Se um usuário foi comprometido, haverá sinais: falhas 4625 antes de sucesso 4624, logon administrativo com 4672, criação de processo 4688 ou Sysmon 1, conexão de rede Sysmon 3, criação de arquivo Sysmon 11, alteração de registro Sysmon 13. Wazuh organiza alertas, mas a conclusão depende do analista voltar ao log bruto e correlacionar tempo, usuário, host e processo.',
+        'Forense de disco ensina que ações deixam artefatos mesmo quando o atacante apaga arquivos. Prefetch sugere execução, AmCache guarda dados de programas, LNK e Jump Lists revelam interação de usuário, Registry hives guardam configuração e credenciais locais, $MFT registra metadados de arquivos. Em Linux, auth.log, bash_history, cron e authorized_keys cumprem papel semelhante em investigações.',
+        'Os labs medium do Dia 2 combinam essas ideias: Forest e Sauna usam enumeração de AD e roasting; Active usa SMB/SYSVOL/GPP e Kerberoasting; Monteverde usa RPC e password spray; Cascade usa atributos LDAP, recycle bin e VNC; Cronos usa DNS zone transfer, SQLi e cron. Cada lab é uma variação de identidade, evidência e encadeamento.',
+      ]
+    }
+  },
+  {
+    id: 'd2-lab-bridge-all-machines', title: 'Antes dos Labs — Tudo que Aparece no Dia 2', day: 2, topic: 'Labs',
+    type: 'table',
+    content: {
+      table: {
+        headers: ['Lab', 'Conceitos ensinados antes', 'Ferramentas esperadas', 'O aluno deve saber explicar antes de começar'],
+        rows: [
+          ['Forest', 'RPC null session, lista de usuários, AS-REP Roasting, BloodHound, caminho até DCSync.', 'rpcclient, GetNPUsers.py, hashcat, bloodhound-python, BloodHound.', 'Por que uma conta sem pré-autenticação Kerberos permite hash offline e como BloodHound transforma relações em caminho.'],
+          ['Sauna', 'Geração de usernames por nomes públicos, AS-REP, AutoLogon no Registry, movimento lateral.', 'cewl/manual usernames, GetNPUsers.py, evil-winrm, reg query.', 'Como nomes de funcionários viram usernames prováveis e por que AutoLogon expõe credenciais.'],
+          ['Active', 'SMB anonymous, SYSVOL, Group Policy Preferences, cpassword, Kerberoasting.', 'smbclient, gpp-decrypt, GetUserSPNs.py, hashcat, psexec em lab.', 'Por que Groups.xml é sensível e como Kerberoasting depende de conta com SPN.'],
+          ['Monteverde', 'RPC enumeration, password spray controlado, Azure AD Connect, credenciais em banco/config.', 'rpcclient, crackmapexec, smbclient, ferramentas MSSQL/PowerShell.', 'Por que spray é diferente de brute force e por que política de lockout precisa ser checada.'],
+          ['Cascade', 'LDAP attributes, dados legados, AD Recycle Bin, VNC password decrypt.', 'ldapsearch, ldapdomaindump, smbclient, ferramentas de decrypt em lab.', 'Por que atributos LDAP incomuns podem conter dados sensíveis e como objetos deletados ainda podem revelar informação.'],
+          ['Cronos', 'DNS zone transfer, subdomínio admin, SQL injection auth bypass, cron job gravável.', 'dig, /etc/hosts, curl/Burp, sqlmap/manual em lab, cat /etc/crontab.', 'Como AXFR revela superfície oculta e por que cron executando script gravável vira root.'],
+        ]
+      }
+    }
+  },
+  {
+    id: 'd3-deep-theory-advanced-chain', title: 'Teoria Profunda — Memória, Malware, Privesc e AD Avançado', day: 3, topic: 'Forense',
+    type: 'theory',
+    content: {
+      theory: [
+        'O Dia 3 exige que o aluno pare de procurar "o comando certo" e comece a montar cadeias. Em máquinas hard, uma evidência leva a outra: um share revela usuários, um hash dá uma conta, a conta tem uma permissão, a permissão altera outra conta, a nova conta acessa um dump, o dump revela credenciais, as credenciais têm privilégio de backup, e só então vem NTDS. Se o aluno não documenta a cadeia, ele se perde.',
+        'Forense de memória ensina a enxergar o que não está no disco. pslist mostra processos ativos, psscan pode revelar processos encerrados ou ocultos, pstree mostra relação pai-filho, cmdline mostra argumentos, netscan relaciona processo com rede, malfind sugere injeção e dumpfiles permite extrair evidência. A conclusão nunca deve vir de um plugin só. Um bom analista combina: processo estranho + command line suspeita + conexão externa + memória anômala.',
+        'Análise estática de malware deve ser segura e defensiva. Antes de qualquer execução, registre hash, tipo de arquivo, strings, imports, URLs, comandos embutidos, packers e possíveis IOCs. O objetivo do curso não é ensinar a criar malware, mas sim reconhecer comportamento: persistência por Run Key, execução por PowerShell, comunicação HTTP, extração de credenciais, download de payload e evasão simples.',
+        'Privilege escalation é uma árvore de decisões. Em Linux: identidade, sudo, SUID, capabilities, cron, arquivos graváveis, serviços locais e segredos. Em Windows: token, grupos, privilégios, serviços, registry, credenciais salvas, patches e conexões. O aluno precisa diferenciar achado interessante de vetor explorável. "SeImpersonate existe" não é root automaticamente; "serviço tem path sem aspas" só importa se houver permissão de escrita no caminho explorável.',
+        'AD avançado é sobre permissões específicas. ForceChangePassword permite alterar senha de outra conta; SeBackupPrivilege permite ler arquivos protegidos via backup semantics; DCSync exige permissões de replicação; ADCS depende de template vulnerável; MSSQL depende de permissão no banco; coerção NTLM e relay dependem de configuração e escopo. Cada técnica tem pré-requisito, ferramenta, evidência e impacto.',
+      ]
+    }
+  },
+  {
+    id: 'd3-lab-bridge-all-machines', title: 'Antes dos Labs — Tudo que Aparece no Dia 3', day: 3, topic: 'Labs',
+    type: 'table',
+    content: {
+      table: {
+        headers: ['Lab', 'Conceitos ensinados antes', 'Ferramentas esperadas', 'O aluno deve saber explicar antes de começar'],
+        rows: [
+          ['Blackfield', 'SMB profiles como usernames, AS-REP, ForceChangePassword, LSASS dump, SeBackupPrivilege, NTDS offline.', 'smbclient, GetNPUsers.py, hashcat, BloodHound, net rpc, pypykatz, diskshadow, secretsdump.', 'Como uma lista de perfis vira users.txt e por que SeBackupPrivilege permite extrair arquivos protegidos via shadow copy.'],
+          ['Sizzle', 'Share gravável, SCF attack conceitual, captura NetNTLMv2, ADCS, Kerberoasting, DCSync.', 'smbclient, responder em lab, certipy, GetUserSPNs.py, BloodHound.', 'Por que um arquivo em share pode induzir autenticação Windows e por que ADCS mal configurado vira autenticação forte.'],
+          ['Querier', 'SMB com arquivo Office, string de conexão MSSQL, xp_cmdshell, captura NetNTLM, Silver Ticket conceitual.', 'smbclient, strings/oletools, mssqlclient.py, responder em lab.', 'Como credenciais em documento levam ao MSSQL e por que serviço SQL pode executar comandos quando mal configurado.'],
+          ['Mantis', 'Aplicação .NET, credenciais protegidas/configuradas, MSSQL, Kerberos Bronze Bit conceitual.', 'curl/navegador, ferramentas .NET em lab, mssqlclient.py, enumeração AD.', 'Por que arquivos/configs de aplicação podem esconder credenciais e como banco vira ponte para domínio.'],
+          ['Reel2', 'OWA, phishing em lab controlado, captura NTLMv2, JEA PowerShell, Sticky Notes como fonte de credenciais.', 'navegador, responder em lab, PowerShell, leitura de artefatos de usuário.', 'Por que phishing só é tratado em ambiente controlado e como JEA restringe comandos mas pode ter bypass específico.'],
+          ['Multimaster', 'SQLi com WAF, Unicode bypass conceitual, Sysmon, túnel VS Code, Exchange abuse conceitual.', 'Burp/curl, leitura Sysmon, ferramentas de pivot em lab, BloodHound.', 'Como WAF muda input mas não elimina bug lógico e por que telemetria ajuda a entender pivot.'],
+        ]
+      }
+    }
+  },
+  {
+    id: 'd4-deep-theory-integration', title: 'Teoria Profunda — Como Consolidar Tudo', day: 4, topic: 'Revisão',
+    type: 'theory',
+    content: {
+      theory: [
+        'O último dia não deve ser uma repetição apressada. Ele precisa transformar conteúdo em desempenho. Para isso, o aluno deve treinar recuperação ativa: explicar comandos sem olhar, justificar ferramentas, montar timeline, escrever relatório e refazer labs conhecidos com limite de tempo. A habilidade final não é "saber que existe hashcat"; é saber quando um hash é AS-REP, quando é Kerberoast, quando é NTLM e quando nem é hash crackável daquele jeito.',
+        'A consolidação deve sempre voltar para perguntas centrais: que superfície existe? que evidência foi coletada? que identidade foi usada? que privilégio foi obtido? que técnica MITRE descreve o comportamento? que recomendação reduziria o risco? Essas perguntas unem Red Team, Blue Team e Forense em um único raciocínio.',
+        'Relatório é parte do aprendizado técnico. Um relatório ruim diz "explorei SMB". Um relatório bom diz "a porta 445/TCP aceitava SMB; o share Replication permitia leitura anônima; dentro de Policies/.../Groups.xml havia cpassword; a senha foi decifrada com gpp-decrypt porque GPP usava chave AES publicada; a credencial resultante permitiu Kerberoasting". Essa precisão mostra domínio.',
+        'Speed run não é correr sem pensar. É executar um método já internalizado: scan salvo, enumeração por serviço, hipótese, validação, exploração em lab, pós-exploração, privesc, evidência e escrita. Se o aluno pula a documentação para ganhar tempo, ele treina o hábito errado.',
+      ]
+    }
+  },
+];
+
+const tenHourWorkshopSlides: Slide[] = [
+  {
+    id: 'd1-10h-guarantee-workshop', title: 'Garantia de 10h — Oficina Completa do Dia 1', day: 1, topic: 'Ferramentas',
+    type: 'table',
+    content: {
+      theory: [
+        'Este roteiro existe para garantir tempo real de estudo. O aluno não deve apenas ler os slides: deve executar comandos em ambiente de laboratório, escrever hipóteses, comparar saídas e entregar evidências. Se todos os itens forem feitos com calma, discussão e correção, o Dia 1 passa de 10 horas úteis.',
+        'A regra de condução é simples: cada bloco termina com uma entrega. Sem entrega, o bloco não conta como concluído. A entrega pode ser uma tabela, um mini-relatório, uma captura de evidência ou uma explicação oral gravada/anotada.',
+      ],
+      table: {
+        headers: ['Tempo', 'Atividade obrigatória', 'Como executar', 'Entrega'],
+        rows: [
+          ['0:00-0:45', 'Preparar ambiente e método', 'Criar pasta do caso, separar scans/loot/notes, definir alvo autorizado, escrever escopo e limites.', 'Arquivo notes/escopo.md com alvo, objetivo e regras.'],
+          ['0:45-2:00', 'Laboratório de TCP/IP e portas', 'Desenhar handshake TCP, comparar TCP/UDP, mapear 20 portas comuns e associar cada porta a uma pergunta de enumeração.', 'Tabela porta -> serviço -> pergunta -> ferramenta.'],
+          ['2:00-3:30', 'Nmap em camadas', 'Rodar scan inicial, all ports, targeted scan e scripts específicos em host de lab; explicar diferenças de saída.', 'scan.txt, allports.txt, targeted.txt e interpretação.'],
+          ['3:30-4:45', 'HTTP manual antes de fuzzing', 'Usar curl -i, -I, -L, cookies, Host header, robots.txt e código-fonte antes de qualquer wordlist.', 'Mapa de aplicação com headers, rotas e hipóteses.'],
+          ['4:45-5:45', 'Fuzzing com controle de ruído', 'Rodar gobuster/ffuf com e sem filtros; comparar falsos positivos por status, tamanho e palavras.', 'Tabela de filtros usados e por que funcionaram.'],
+          ['5:45-6:45', 'Serviços de arquivo', 'Enumerar FTP e SMB em lab; testar anonymous/null session; baixar arquivos e classificar evidências.', 'Inventário de arquivos: origem, conteúdo, possível uso.'],
+          ['6:45-7:45', 'Linux pós-shell simulado', 'Em VM ou shell de treino, executar whoami/id, sudo -l, SUID, capabilities, cron, processos e logs.', 'Checklist de privesc local preenchida.'],
+          ['7:45-8:45', 'PCAP e Wireshark', 'Abrir PCAP, usar Protocol Hierarchy, Follow TCP Stream, filtros FTP/HTTP/DNS e exportação de objetos.', 'Mini-relatório de PCAP com credencial ou evidência de sessão.'],
+          ['8:45-10:30', 'Aplicação em labs easy', 'Iniciar pelo menos duas máquinas easy e aplicar o método sem consultar solução; se travar, escrever hipótese faltante.', 'Write-up parcial ou completo com evidências reais.'],
+        ]
+      },
+      tips: [
+        'Se a turma terminar antes, repita a etapa com outro alvo de laboratório ou peça apresentação oral de cada entrega. A apresentação também conta como estudo ativo.',
+      ]
+    }
+  },
+  {
+    id: 'd1-10h-deep-network-exercises', title: 'Oficina Dia 1 — Exercícios Profundos de Redes e Web', day: 1, topic: 'Redes',
+    type: 'checklist',
+    content: {
+      theory: [
+        'Estes exercícios transformam teoria em habilidade. O aluno deve fazer cada item manualmente, anotar o resultado e explicar a decisão seguinte. A ideia é impedir que o estudo vire leitura passiva.',
+        'Professor: peça para os alunos trabalharem em duplas por 40 minutos e depois trocarem as anotações. Quem recebe as notas deve conseguir repetir a enumeração sem perguntar nada. Se não conseguir, a documentação está fraca.',
+      ],
+      checklist: [
+        'Desenhar o 3-way handshake e explicar como Nmap infere open, closed e filtered.',
+        'Escolher 15 portas comuns e escrever uma pergunta investigativa para cada uma.',
+        'Rodar nmap -sC -sV e marcar no output: porta, estado, serviço, versão, script e hostname.',
+        'Rodar nmap -p- e explicar por que ele pode encontrar portas ausentes no scan inicial.',
+        'Criar uma hipótese para cada porta aberta antes de abrir qualquer navegador.',
+        'Usar curl -i e identificar status code, headers, cookie, tecnologia e redirect.',
+        'Usar curl com Host header para testar vhost em ambiente de lab.',
+        'Rodar ffuf sem filtro, depois com -fc ou -fs, e comparar ruído removido.',
+        'Explicar a diferença entre 401, 403, 404, 301 e 302 em contexto de enumeração.',
+        'Montar um mapa final: serviço -> evidência -> hipótese -> próximo comando.',
+      ],
+      tips: [
+        'Tempo sugerido: 2h30. Não corrija apenas resposta final; corrija a justificativa.',
+      ]
+    }
+  },
+  {
+    id: 'd1-10h-linux-privesc-drill', title: 'Oficina Dia 1 — Drill de Linux e Escalada Local', day: 1, topic: 'Linux',
+    type: 'theory',
+    content: {
+      theory: [
+        'O objetivo deste drill é fazer o aluno reconhecer padrões locais sem depender imediatamente de scripts automáticos. Scripts como linpeas são úteis, mas se o aluno não entende sudo, SUID, capabilities, cron e permissões, ele só copia output colorido sem raciocínio.',
+        'Comece com identidade. whoami responde o nome do usuário; id responde UID, GID e grupos. Grupos como adm, docker, lxd, backup e sudo mudam completamente o caminho. Um aluno deve olhar para grupos como quem olha para portas abertas: cada grupo é uma superfície de privilégio.',
+        'Depois vem sudo -l. Uma regra NOPASSWD deve acender alerta: se o usuário pode executar um binário como root, o próximo passo é entender se aquele binário permite shell, leitura, escrita, execução de comando ou escape. GTFOBins é uma referência para isso, mas a pergunta vem antes: o binário tem função que quebra a fronteira de privilégio?',
+        'SUID e capabilities são duas formas de delegar poder. SUID executa com o dono do arquivo; capability entrega permissões específicas para um binário. A Cap usa cap_setuid+ep em Python: isso significa que o interpretador pode chamar setuid e assumir UID 0. O aluno precisa entender esse porquê antes de ver a linha final que vira root.',
+        'Cron ensina tempo e confiança. Se root executa periodicamente um script gravável pelo usuário, a escalada acontece quando o aluno altera o que root executa. A validação exige verificar dono, permissão, frequência e se o script realmente roda. Não é "achei cron, sou root"; é "achei cron executado por root que chama arquivo sob meu controle".',
+      ],
+      table: {
+        headers: ['Etapa', 'Pergunta', 'Evidência forte', 'Tempo de prática'],
+        rows: [
+          ['Identidade', 'Quem sou e em quais grupos estou?', 'id mostra grupo com privilégio ou acesso a arquivo.', '20 min'],
+          ['Sudo', 'Posso executar algo como outro usuário?', 'sudo -l com NOPASSWD e binário explorável.', '35 min'],
+          ['SUID', 'Há binário root executável por mim?', 'find mostra SUID incomum e GTFOBins explica abuso.', '40 min'],
+          ['Capabilities', 'Há permissão granular perigosa?', 'getcap mostra cap_setuid, cap_dac_read_search ou similar.', '35 min'],
+          ['Cron', 'Root executa algo que eu controlo?', 'crontab chama script gravável.', '35 min'],
+          ['Segredos', 'Configuração guarda credenciais?', 'grep encontra senha em /var/www, /opt ou backup.', '30 min'],
+        ]
+      }
+    }
+  },
+  {
+    id: 'd2-10h-guarantee-workshop', title: 'Garantia de 10h — Oficina Completa do Dia 2', day: 2, topic: 'Blue Team',
+    type: 'table',
+    content: {
+      theory: [
+        'O Dia 2 garante 10h porque combina investigação defensiva, teoria de identidade, prática de AD e forense. A cada bloco, o aluno precisa produzir artefato verificável: timeline, consulta, grafo, hash ou relatório parcial.',
+      ],
+      table: {
+        headers: ['Tempo', 'Atividade obrigatória', 'Como executar', 'Entrega'],
+        rows: [
+          ['0:00-1:00', 'Triagem de alertas Wazuh', 'Analisar alertas simulados: level, rule id, agente, srcip, usuário e raw log.', 'Ficha de triagem com prioridade e justificativa.'],
+          ['1:00-2:15', 'Windows Event IDs', 'Filtrar 4624, 4625, 4672, 4688 e explicar logon type, usuário, origem e processo.', 'Timeline de autenticação com 8 eventos.'],
+          ['2:15-3:15', 'Sysmon aplicado', 'Ler eventos 1, 3, 11, 13 e 22; montar árvore processo -> rede -> arquivo.', 'Árvore de processo suspeita comentada.'],
+          ['3:15-4:45', 'Kerberos no quadro e no terminal', 'Desenhar AS-REQ/TGT/TGS e rodar exemplos de AS-REP/Kerberoast em lab controlado.', 'Diagrama Kerberos + tabela de pré-requisitos.'],
+          ['4:45-6:00', 'BloodHound e relações', 'Importar coleta de exemplo e explicar arestas: MemberOf, GenericAll, ForceChangePassword, WriteDACL, CanDCSync.', 'Caminho de ataque explicado em texto.'],
+          ['6:00-7:15', 'Forense de disco e artefatos', 'Analisar exemplos de Prefetch, AmCache, LNK, Registry, bash_history e auth.log.', 'Tabela pergunta -> artefato -> evidência.'],
+          ['7:15-8:15', 'PCAP intermediário', 'Extrair HTTP requests, credenciais FTP, conversas TCP e objetos.', 'Mini-relatório de rede.'],
+          ['8:15-10:30', 'Labs medium com checkpoints', 'Resolver ou iniciar Forest/Active/Sauna/Cronos com checkpoints de 30 min.', 'Write-up parcial com hipótese e evidência por checkpoint.'],
+        ]
+      }
+    }
+  },
+  {
+    id: 'd2-10h-ad-exercises', title: 'Oficina Dia 2 — Exercícios de Active Directory', day: 2, topic: 'Active Directory',
+    type: 'checklist',
+    content: {
+      theory: [
+        'Esta oficina existe para garantir que os labs de AD não pareçam aleatórios. Antes de tocar em Forest, Sauna ou Active, o aluno deve conseguir explicar usuários, grupos, SPNs, Kerberos, LDAP, SYSVOL, GPP e BloodHound.',
+        'Professor: não aceite "rodei BloodHound e apareceu caminho" como explicação. Peça para o aluno traduzir cada aresta em linguagem humana: quem controla quem, por qual permissão e qual ação isso permite.',
+      ],
+      checklist: [
+        'Desenhar domínio, DC, usuário, grupo, serviço e computador em um mapa simples.',
+        'Explicar diferença entre autenticação Kerberos e NTLM.',
+        'Explicar TGT e TGS usando analogia de ingresso, sem perder precisão técnica.',
+        'Gerar users.txt a partir de fonte autorizada e explicar risco de enumeração de usuários.',
+        'Rodar GetNPUsers.py em lab e identificar se houve AS-REP ou não.',
+        'Diferenciar hash AS-REP, TGS Kerberoast, NTLM e NetNTLMv2.',
+        'Explicar por que GPP cpassword é vulnerabilidade histórica.',
+        'Importar dados no BloodHound e explicar pelo menos três arestas.',
+        'Montar tabela técnica -> pré-requisito -> ferramenta -> evidência -> mitigação.',
+        'Escrever mitigação para AS-REP, Kerberoast, GPP, password spray e DCSync.',
+      ],
+      tips: [
+        'Tempo sugerido: 2h30 a 3h. Se a turma estiver fraca em Kerberos, use todo o bloco aqui antes dos labs.',
+      ]
+    }
+  },
+  {
+    id: 'd2-10h-blue-team-case-study', title: 'Oficina Dia 2 — Estudo de Caso Blue Team', day: 2, topic: 'Blue Team',
+    type: 'theory',
+    content: {
+      theory: [
+        'Cenário didático: às 03:11, um host Windows começa a registrar várias falhas 4625 para a conta svc_backup. Às 03:14, há um 4624 tipo 3 para a mesma conta vindo do mesmo IP. Às 03:15, aparece 4672. Às 03:16, Sysmon Event 1 mostra powershell.exe iniciado por um processo incomum. Às 03:17, Sysmon Event 3 mostra conexão para IP externo. Às 03:19, Wazuh gera alerta de arquivo criado em diretório sensível.',
+        'O aluno deve aprender a não concluir cedo demais. Muitas falhas 4625 podem ser usuário esquecido, serviço com senha antiga ou ataque. O 4624 muda a gravidade porque mostra sucesso. O 4672 muda novamente porque indica privilégio. O processo e a conexão apontam execução. O arquivo criado sugere persistência ou payload. A conclusão nasce da sequência, não de um evento isolado.',
+        'A atividade deve ser feita em tabela de timeline. Cada linha precisa ter horário, fonte, Event ID ou alerta, host, usuário, origem, descrição e interpretação. Depois a turma deve mapear pelo menos três técnicas MITRE: Valid Accounts, Command and Scripting Interpreter, ingress tool transfer ou persistence, dependendo da evidência simulada.',
+        'Para fechar, peça recomendações defensivas concretas: revisar senha e lockout policy, MFA onde aplicável, restringir contas de serviço, habilitar PowerShell logging, revisar Sysmon config, alertar logon administrativo fora de horário, investigar host de origem e coletar memória/disco se confirmado.',
+      ],
+      table: {
+        headers: ['Evidência', 'Pergunta que responde', 'Conclusão permitida'],
+        rows: [
+          ['4625 repetido', 'Houve tentativa de autenticação falha?', 'Possível brute force, spray ou serviço quebrado.'],
+          ['4624 tipo 3', 'Houve logon de rede bem-sucedido?', 'Credencial funcionou em acesso remoto/rede.'],
+          ['4672', 'O logon recebeu privilégio especial?', 'Conta tem privilégio administrativo ou sensível.'],
+          ['Sysmon 1', 'Que processo executou?', 'Cadeia pai-filho e command line podem indicar ataque.'],
+          ['Sysmon 3', 'Processo fez rede?', 'Possível C2, download ou movimentação.'],
+          ['Wazuh FIM', 'Arquivo sensível mudou?', 'Possível payload, persistência ou alteração indevida.'],
+        ]
+      }
+    }
+  },
+  {
+    id: 'd3-10h-guarantee-workshop', title: 'Garantia de 10h — Oficina Completa do Dia 3', day: 3, topic: 'Forense',
+    type: 'table',
+    content: {
+      theory: [
+        'O Dia 3 garante 10h porque cada tema exige análise, não só execução: memória precisa correlação, malware precisa hipótese segura, privesc precisa árvore de decisão e AD hard precisa cadeia documentada.',
+      ],
+      table: {
+        headers: ['Tempo', 'Atividade obrigatória', 'Como executar', 'Entrega'],
+        rows: [
+          ['0:00-1:30', 'Triagem de memória', 'Rodar info, pslist, psscan, pstree, cmdline e comparar resultados.', 'Tabela PID -> PPID -> cmdline -> suspeita.'],
+          ['1:30-2:45', 'Rede e injeção em memória', 'Usar netscan, dlllist, malfind e correlacionar com processos.', 'Hipótese de comprometimento com 3 evidências.'],
+          ['2:45-4:00', 'Malware estático seguro', 'file, hash, strings, xxd, readelf/objdump/binwalk/upx em amostras de lab.', 'IOC list e comportamento provável.'],
+          ['4:00-5:00', 'MITRE por evidência', 'Mapear 8 evidências para tática e técnica com justificativa.', 'Tabela evidência -> técnica -> motivo.'],
+          ['5:00-6:30', 'Privesc drills', 'Executar checklists Linux/Windows em máquinas de treino.', 'Árvore de decisão preenchida.'],
+          ['6:30-7:30', 'AD avançado guiado', 'Estudar ForceChangePassword, SeBackupPrivilege, DCSync, ADCS e MSSQL por pré-requisito.', 'Tabela técnica -> pré-requisito -> impacto.'],
+          ['7:30-10:30', 'Labs hard com timeboxing', 'Trabalhar Blackfield/Sizzle/Querier ou outra hard com checkpoints.', 'Cadeia parcial com pelo menos 5 evidências.'],
+        ]
+      }
+    }
+  },
+  {
+    id: 'd3-10h-memory-malware-case', title: 'Oficina Dia 3 — Caso Completo de Memória e Malware', day: 3, topic: 'Malware',
+    type: 'theory',
+    content: {
+      theory: [
+        'Cenário didático: um usuário abriu um documento, depois o host fez conexão externa. O dump de memória contém WINWORD.EXE, cmd.exe e powershell.exe. A pergunta do aluno não é "qual plugin resolve?". A pergunta é: qual processo iniciou a cadeia, que comando foi executado, houve conexão de rede e existe memória suspeita?',
+        'Primeiro, windows.pstree revela relação pai-filho. Se WINWORD.EXE gerou cmd.exe e cmd.exe gerou powershell.exe, isso é anormal para uso comum e compatível com macro maliciosa. Segundo, windows.cmdline mostra se PowerShell recebeu EncodedCommand, download cradle ou execução escondida. Terceiro, windows.netscan mostra se o processo conversou com IP externo. Quarto, windows.malfind pode sugerir injeção ou região executável suspeita.',
+        'Depois vem a parte estática. Se dumpfiles ou filescan encontra um executável, o aluno calcula hash, roda file, strings e busca URLs, IPs, comandos, registry keys e sinais de packer. A conclusão deve ser escrita como hipótese: "A cadeia sugere execução de macro que iniciou PowerShell codificado e conectou ao IP X; strings do payload indicam tentativa de persistência por Run Key".',
+        'O professor deve corrigir linguagem. Evite que alunos escrevam "é malware porque parece estranho". Peça evidência: processo pai anômalo, command line suspeita, conexão, memória RWX, IOC ou artefato de persistência. A aula deve formar precisão.',
+      ],
+      table: {
+        headers: ['Passo', 'Ferramenta', 'Pergunta', 'Evidência esperada'],
+        rows: [
+          ['1', 'pstree', 'Quem criou quem?', 'Office criando shell ou PowerShell.'],
+          ['2', 'cmdline', 'Com quais argumentos?', 'EncodedCommand, URL, bypass, hidden.'],
+          ['3', 'netscan', 'Falou com rede?', 'IP/porta remota associada ao PID.'],
+          ['4', 'malfind', 'Há memória suspeita?', 'RWX, MZ header ou bytes anômalos.'],
+          ['5', 'strings/hash', 'Quais IOCs existem?', 'URL, IP, path, registry, mutex, comando.'],
+          ['6', 'MITRE', 'Qual comportamento representa?', 'T1059.001, T1204, T1105, T1547.001 etc.'],
+        ]
+      }
+    }
+  },
+  {
+    id: 'd4-10h-guarantee-workshop', title: 'Garantia de 10h — Oficina Completa do Dia 4', day: 4, topic: 'Revisão',
+    type: 'table',
+    content: {
+      theory: [
+        'O Dia 4 é desenhado para consolidar e medir. Ele só conta como concluído se o aluno demonstrar domínio sem depender de copiar comandos: explicar, aplicar, documentar e revisar erro.',
+      ],
+      table: {
+        headers: ['Tempo', 'Atividade obrigatória', 'Como executar', 'Entrega'],
+        rows: [
+          ['0:00-1:00', 'Prova oral de comandos', 'Professor sorteia comandos; aluno explica quando usar, por que usar, saída e cuidado.', 'Lista de acertos/erros por aluno.'],
+          ['1:00-2:15', 'Revisão por mapas', 'Construir mapa redes -> web -> Linux -> Windows -> AD -> forense -> relatório.', 'Mapa individual de conhecimento.'],
+          ['2:15-3:45', 'Simulado Blue Team', 'Receber eventos e PCAP; montar timeline e MITRE.', 'Timeline com 10 eventos e conclusão.'],
+          ['3:45-5:15', 'Simulado Red Team', 'Receber alvo de lab; executar enumeração e hipóteses sem solução.', 'Tabela serviço -> evidência -> decisão.'],
+          ['5:15-6:30', 'Escrita de relatório', 'Transformar achados em finding técnico com impacto e recomendação.', 'Uma seção de relatório revisada.'],
+          ['6:30-8:45', 'Speed runs controlados', 'Refazer labs conhecidos com timer e documentação em tempo real.', 'Tempo, checkpoints, bloqueios e evidências.'],
+          ['8:45-10:30', 'Debrief e plano de reforço', 'Classificar erros por conhecimento, método ou atenção e planejar treino.', 'Plano de estudo individual de 7 dias.'],
+        ]
+      }
+    }
+  },
+  {
+    id: 'd4-10h-final-assessment', title: 'Oficina Dia 4 — Avaliação Final de Domínio', day: 4, topic: 'Revisão',
+    type: 'checklist',
+    content: {
+      theory: [
+        'Esta avaliação garante que o aluno não apenas passou pelos slides, mas consegue usar o conteúdo. Ela pode ser aplicada como prova prática ou como autoavaliação guiada.',
+      ],
+      checklist: [
+        'Explicar Nmap em camadas: inicial, todas as portas, targeted e scripts NSE.',
+        'Diferenciar curl manual, fuzzing de diretórios, fuzzing de vhost e fuzzing de parâmetro.',
+        'Explicar por que FTP/HTTP sem TLS podem vazar credenciais em PCAP.',
+        'Executar enumeração Linux local sem script automático e interpretar cada etapa.',
+        'Diferenciar SUID, sudo NOPASSWD, capabilities e cron job gravável.',
+        'Explicar Event IDs 4624, 4625, 4672, 4688 e Sysmon 1/3/11/22.',
+        'Desenhar Kerberos e posicionar AS-REP Roasting e Kerberoasting no fluxo.',
+        'Explicar GPP cpassword e por que Active explora política legada.',
+        'Ler uma aresta do BloodHound e traduzir em permissão real.',
+        'Usar Volatility para montar hipótese com pstree, cmdline, netscan e malfind.',
+        'Extrair IOCs básicos de amostra estática sem executar malware.',
+        'Mapear evidência para MITRE sem chutar pelo nome da técnica.',
+        'Escrever finding com evidência, impacto, técnica e recomendação.',
+        'Explicar pelo menos uma cadeia completa de lab do início ao root/admin.',
+      ],
+      tips: [
+        'Se o aluno falhar em mais de três itens, ele deve voltar aos blocos correspondentes antes de tentar labs novos.',
+      ]
+    }
+  },
+];
+
+const commandManualSlides: Slide[] = [
+  // ==================== MANUAL DE COMANDOS - DIA 1 ====================
+  {
+    id: 'd1-manual-nmap', title: 'Manual de Comandos — Nmap', day: 1, topic: 'Ferramentas',
+    type: 'table',
+    content: {
+      theory: [
+        'Nmap deve ser usado em camadas: descobrir se o host responde, descobrir portas, identificar serviços, aprofundar scripts e validar achados. Cada comando abaixo tem uma intenção diferente.',
+      ],
+      table: {
+        headers: ['Comando', 'Quando usar', 'Por que usar', 'O que acontece / como ler', 'Cuidado'],
+        rows: [
+          ['nmap -sn <rede>/24', 'Início em rede autorizada com vários hosts.', 'Descobre hosts vivos sem varrer portas.', 'Mostra quais IPs responderam a probes. Use como inventário inicial.', 'ICMP bloqueado pode esconder hosts vivos.'],
+          ['nmap -Pn <IP>', 'Quando o host parece offline.', 'Ignora host discovery e tenta portas direto.', 'Pode revelar portas mesmo sem ping.', 'Mais lento em faixas grandes.'],
+          ['nmap -sC -sV -oN scan.txt <IP>', 'Primeiro scan TCP de CTF.', 'Roda scripts padrão e identifica versões.', 'Mostra PORT, STATE, SERVICE, VERSION e scripts relevantes.', 'Não substitui scan de todas as portas.'],
+          ['nmap -p- --min-rate 5000 -oN allports.txt <IP>', 'Depois do scan inicial.', 'Procura portas TCP fora do top 1000.', 'Retorna lista ampla de portas abertas.', 'Confirme depois com -sV nas portas achadas.'],
+          ['nmap -sC -sV -p 22,80,445 <IP>', 'Após descobrir portas específicas.', 'Aprofunda só no que está aberto.', 'Reduz ruído e melhora leitura de versões/scripts.', 'Portas esquecidas ficam sem enumeração.'],
+          ['sudo nmap -sS <IP>', 'Quando tem privilégio local/root.', 'SYN scan é rápido e padrão em ambientes Unix.', 'Envia SYN e interpreta SYN-ACK/RST sem completar sessão.', 'Requer permissão elevada.'],
+          ['nmap -sT <IP>', 'Quando não tem root.', 'Usa conexão TCP completa do sistema operacional.', 'Mais compatível, porém mais ruidoso.', 'Pode aparecer mais claramente em logs.'],
+          ['sudo nmap -sU --top-ports 20 <IP>', 'Quando suspeita de DNS, SNMP, NTP, TFTP.', 'UDP não aparece em scan TCP.', 'open|filtered é comum; valide manualmente.', 'UDP é lento e ambíguo.'],
+          ['nmap -A <IP>', 'Em lab, para enumeração agressiva rápida.', 'Combina OS detection, version, scripts e traceroute.', 'Produz saída rica, mas barulhenta.', 'Evite como primeiro comando em ambiente sensível.'],
+          ['nmap -O <IP>', 'Quando OS importa para hipótese.', 'Tenta fingerprint de sistema operacional.', 'Mostra probabilidade de OS.', 'Pode errar com firewall/NAT.'],
+          ['nmap --script=http-enum -p80 <IP>', 'Porta HTTP aberta.', 'Busca caminhos comuns via NSE.', 'Lista diretórios/arquivos conhecidos.', 'Não substitui ffuf/gobuster.'],
+          ['nmap --script=ftp-anon -p21 <IP>', 'FTP aberto.', 'Verifica login anônimo.', 'Indica se anonymous funciona.', 'Se funcionar, enumere manualmente com ftp/lftp.'],
+          ['nmap --script=smb-enum-shares,smb-enum-users -p445 <IP>', 'SMB aberto.', 'Lista shares/usuários quando permitido.', 'Pode revelar nomes de share e contas.', 'Falha não significa que SMB não tem dados.'],
+          ['nmap --script=vuln -p <porta> <IP>', 'Após identificar serviço e versão.', 'Procura checks conhecidos de vulnerabilidade.', 'Saída sugere CVEs ou misconfigs.', 'Confirme manualmente; script pode ter falso positivo.'],
+          ['nmap -oA scans/initial <IP>', 'Quando quer evidência completa.', 'Salva normal, grepable e XML.', 'Gera initial.nmap, initial.gnmap e initial.xml.', 'Organize nomes para não sobrescrever.'],
+        ]
+      }
+    }
+  },
+  {
+    id: 'd1-manual-http-curl', title: 'Manual de Comandos — HTTP, curl e Headers', day: 1, topic: 'Web',
+    type: 'table',
+    content: {
+      theory: [
+        'curl é a ferramenta para conversar com HTTP sem distrações do navegador. Use para ver exatamente o que você enviou e exatamente o que o servidor respondeu.',
+      ],
+      table: {
+        headers: ['Comando', 'Quando usar', 'Por que usar', 'O que acontece / como ler', 'Cuidado'],
+        rows: [
+          ['curl -i http://<host>/', 'Primeiro contato com site.', 'Mostra headers e corpo juntos.', 'Veja status, Server, Set-Cookie, Location e HTML.', 'Não segue redirects sem -L.'],
+          ['curl -I http://<host>/', 'Quer só headers.', 'Mais rápido para tecnologia e redirects.', 'Mostra cabeçalhos sem baixar corpo.', 'Alguns servidores tratam HEAD diferente de GET.'],
+          ['curl -L -i http://<host>/', 'Quando há 301/302.', 'Segue redirects e mostra cadeia final.', 'Observe cada Location e cookie novo.', 'Pode esconder redirect intermediário se não ler tudo.'],
+          ['curl -v http://<host>/', 'Debug de conexão.', 'Mostra DNS, conexão TCP, TLS e headers enviados.', 'Útil para entender erro de TLS, proxy ou host.', 'Saída é verbosa; salve se precisar.'],
+          ['curl -k https://<host>/', 'HTTPS com certificado inválido em lab.', 'Ignora validação TLS.', 'Permite testar site com cert self-signed.', 'Não use como hábito em produção.'],
+          ['curl -H "Host: admin.<domain>" http://<IP>/', 'Testar virtual host.', 'Servidor pode responder por hostname, não por IP.', 'Resposta diferente indica vhost válido.', 'Adicione ao /etc/hosts depois de confirmar.'],
+          ['curl -H "X-Forwarded-For: 127.0.0.1" http://<host>/admin', 'Testar app que confia em IP de origem.', 'Algumas apps usam header para controle fraco.', 'Se status muda, header influencia autorização.', 'Só em lab; é bypass de controle.'],
+          ['curl -X POST -d "user=admin&pass=admin" http://<host>/login', 'Testar formulário manualmente.', 'Controla parâmetros enviados.', 'Compare status, tamanho e cookies da resposta.', 'Content-Type padrão é form-urlencoded.'],
+          ['curl -b "PHPSESSID=<valor>" http://<host>/admin', 'Reutilizar cookie de sessão.', 'Valida acesso autenticado sem navegador.', 'Se abrir admin, cookie é suficiente.', 'Proteja cookies; são credenciais temporárias.'],
+          ['curl -c cookies.txt -b cookies.txt http://<host>/', 'Manter sessão entre requisições.', 'Salva e reutiliza cookies automaticamente.', 'Útil para login seguido de páginas internas.', 'Apague arquivo se contiver sessão sensível.'],
+          ['curl -u user:pass http://<host>/', 'HTTP Basic Auth.', 'Envia Authorization Basic.', 'Servidor deve responder 200 se credencial serve.', 'Basic é base64, não criptografia.'],
+          ['curl -H "Authorization: Bearer <token>" http://<host>/api', 'Testar API com token.', 'Reproduz chamada autenticada.', '401/403/200 indicam validade e permissão.', 'Não exponha tokens em logs.'],
+          ['curl -o arquivo.bin http://<host>/download', 'Baixar arquivo.', 'Preserva conteúdo para análise.', 'Verifique tipo com file e hash.', 'Não execute arquivo baixado sem análise.'],
+          ['curl -s http://<host>/ | grep -i "admin\\|debug\\|backup"', 'Busca rápida no HTML.', 'Encontra pistas em comentários e links.', 'Mostra termos relevantes.', 'grep pode perder JS minificado complexo.'],
+        ]
+      }
+    }
+  },
+  {
+    id: 'd1-manual-web-fuzzing', title: 'Manual de Comandos — ffuf, gobuster e Feroxbuster', day: 1, topic: 'Web',
+    type: 'table',
+    content: {
+      theory: [
+        'Fuzzing serve para testar muitas hipóteses de caminho, arquivo, parâmetro ou vhost. A regra é filtrar bem para transformar volume em evidência.',
+      ],
+      table: {
+        headers: ['Comando', 'Quando usar', 'Por que usar', 'O que acontece / como ler', 'Cuidado'],
+        rows: [
+          ['gobuster dir -u http://<host>/ -w common.txt', 'Enumeração simples de diretórios.', 'Rápido e fácil de ler.', 'Status 200/301/302/403 indicam caminhos interessantes.', 'Wordlist fraca perde conteúdo.'],
+          ['gobuster dir -u http://<host>/ -w common.txt -x php,txt,bak,zip,old', 'Site com tecnologia conhecida.', 'Testa extensões comuns.', 'Acha backup.php, config.txt, admin.zip etc.', 'Aumenta muito o número de requests.'],
+          ['gobuster dns -d <domain> -w subdomains.txt', 'Descobrir subdomínios por DNS.', 'Resolve nomes comuns.', 'Mostra subdomínios com IP.', 'Não acha vhost sem DNS público.'],
+          ['gobuster vhost -u http://<domain>/ -w subdomains.txt', 'Servidor virtual host.', 'Testa Host header.', 'Tamanho/status diferente sugere vhost.', 'Precisa filtrar resposta padrão.'],
+          ['ffuf -u http://<host>/FUZZ -w common.txt', 'Fuzzing geral de path.', 'Mais flexível que gobuster.', 'Mostra status, tamanho, palavras e linhas.', 'Sem filtro pode gerar ruído.'],
+          ['ffuf -u http://<host>/FUZZ -w common.txt -fc 404', 'Quando 404 é claro.', 'Remove não encontrados.', 'Sobra o que respondeu diferente.', 'Se app retorna 200 para tudo, use -fs/-fw.'],
+          ['ffuf -u http://<host>/FUZZ -w common.txt -fs <tamanho>', 'Quando resposta padrão tem mesmo tamanho.', 'Filtra falso positivo por bytes.', 'Resultados restantes têm tamanho diferente.', 'Tamanho pode variar com hora/banner.'],
+          ['ffuf -u http://<host>/FUZZ -w common.txt -recursion', 'Quando diretórios aparecem.', 'Continua fuzzing dentro de paths achados.', 'Acha estruturas profundas.', 'Pode explodir quantidade de requests.'],
+          ['ffuf -u http://<host>/ -H "Host: FUZZ.<domain>" -w subs.txt -fs <tamanho>', 'Vhost sem DNS.', 'Fuzza Host header.', 'Resposta diferente revela app virtual.', 'Adicione vhost ao hosts para navegar.'],
+          ['ffuf -u "http://<host>/item?id=FUZZ" -w nums.txt', 'Testar IDOR/enumeração de parâmetro.', 'Varia valores de parâmetro.', 'Mudança em status/tamanho indica item válido.', 'Não use em sistemas reais sem autorização.'],
+          ['feroxbuster -u http://<host>/ -w common.txt', 'Enumeração recursiva rápida.', 'Boa visualização e recursão automática.', 'Mostra diretórios e arquivos encontrados.', 'Ajuste rate para não saturar lab.'],
+          ['feroxbuster -u http://<host>/ -x php,txt,bak -k', 'HTTPS inválido ou extensões comuns.', 'Ignora TLS inválido e testa extensões.', 'Acha arquivos por extensão.', 'Use -k só em lab/cert self-signed.'],
+        ]
+      }
+    }
+  },
+  {
+    id: 'd1-manual-network-services', title: 'Manual de Comandos — FTP, SMB, SSH e Netcat', day: 1, topic: 'Redes',
+    type: 'table',
+    content: {
+      theory: [
+        'Serviços de rede expõem arquivos, credenciais, banners e caminhos de acesso. A primeira pergunta é sempre: há acesso anônimo ou credencial reaproveitada?',
+      ],
+      table: {
+        headers: ['Comando', 'Quando usar', 'Por que usar', 'O que acontece / como ler', 'Cuidado'],
+        rows: [
+          ['ftp <IP>', 'Porta 21 aberta.', 'Cliente FTP interativo padrão.', 'Tente usuário anonymous e liste arquivos.', 'FTP envia senha em claro.'],
+          ['lftp -u anonymous,anonymous <IP>', 'FTP anônimo com muitos arquivos.', 'Cliente melhor para download recursivo.', 'Use mirror para copiar diretórios.', 'Confira permissões antes de upload.'],
+          ['wget -m ftp://anonymous:anonymous@<IP>/', 'Baixar árvore FTP.', 'Espelha conteúdo para análise local.', 'Cria cópia dos arquivos expostos.', 'Pode baixar volume grande.'],
+          ['smbclient -L //<IP> -N', 'SMB aberto sem credenciais.', 'Lista shares anonimamente.', 'Shares como Replication, backups, Users são pistas.', 'Falha não exclui acesso com credencial.'],
+          ['smbclient //<IP>/<share> -N', 'Share anônimo encontrado.', 'Navega e baixa arquivos.', 'Use ls, cd, get, mget.', 'Cuidado com mget recursivo sem pasta organizada.'],
+          ['smbclient //<IP>/<share> -U user', 'Tem usuário/senha.', 'Testa acesso autenticado ao share.', 'Status e listagem indicam permissão.', 'Domínio pode ser necessário: DOMAIN\\\\user.'],
+          ['enum4linux-ng -A <IP>', 'Quer panorama SMB/RPC.', 'Enumera domínio, users, groups e shares.', 'Gera relatório amplo para orientar AD.', 'Pode demorar e gerar ruído.'],
+          ['crackmapexec smb <IP> -u user -p pass --shares', 'Validar credencial SMB.', 'Mostra shares acessíveis por usuário.', 'READ/WRITE revelam alvos de arquivo.', 'Não faça spray fora de lab.'],
+          ['ssh user@<IP>', 'Porta 22 e credencial válida.', 'Acesso remoto interativo.', 'Se autenticar, você tem shell do usuário.', 'Registra login no alvo.'],
+          ['ssh -i id_rsa user@<IP>', 'Tem chave privada.', 'Autentica por chave.', 'Permissão da chave precisa ser 600.', 'Nunca exponha chave privada.'],
+          ['ssh -L 8080:127.0.0.1:80 user@<IP>', 'Serviço só acessível localmente no alvo.', 'Cria túnel local.', 'Acesse localhost:8080 na sua máquina.', 'Entenda direção do túnel.'],
+          ['ssh -D 1080 user@<IP>', 'Precisa proxy SOCKS para pivot.', 'Encaminha tráfego via SSH.', 'Configure navegador/proxychains para 127.0.0.1:1080.', 'Pode quebrar DNS se proxy mal configurado.'],
+          ['nc -nv <IP> <porta>', 'Testar banner/protocolo simples.', 'Conexão TCP bruta.', 'Banner pode revelar serviço.', 'Não fala protocolos complexos sozinho.'],
+          ['nc -lvnp 4444', 'Listener em laboratório.', 'Recebe conexão reversa autorizada.', 'Se alvo conectar, mostra sessão.', 'Use apenas em lab/ambiente próprio.'],
+        ]
+      }
+    }
+  },
+  {
+    id: 'd1-manual-linux-core', title: 'Manual de Comandos — Linux Essencial', day: 1, topic: 'Linux',
+    type: 'table',
+    content: {
+      table: {
+        headers: ['Comando', 'Quando usar', 'Por que usar', 'O que acontece / como ler', 'Cuidado'],
+        rows: [
+          ['pwd; whoami; id; hostname', 'Primeiro minuto de shell.', 'Orienta identidade e host.', 'Mostra diretório, usuário, UID, grupos e nome da máquina.', 'Não ignore grupos especiais.'],
+          ['ls -la', 'Explorar diretório.', 'Mostra ocultos, dono e permissões.', 'Arquivos .ssh, .config e backups aparecem.', 'Permissão importa tanto quanto nome.'],
+          ['cat /etc/passwd', 'Mapear usuários.', 'Lista contas e shells.', '/bin/bash ou /bin/sh indica usuário interativo.', 'Não contém hashes modernos.'],
+          ['sudo -l', 'Checar sudo.', 'Pode revelar NOPASSWD.', 'Comando permitido pode virar privesc.', 'Pode pedir senha.'],
+          ['find / -perm -4000 -type f 2>/dev/null', 'Privesc Linux.', 'Encontra SUID.', 'Binário root incomum merece análise.', 'Nem todo SUID é explorável.'],
+          ['getcap -r / 2>/dev/null', 'Privesc por capabilities.', 'Acha permissões granulares perigosas.', 'cap_setuid+ep, cap_dac_read_search são fortes.', 'Capabilities não aparecem no chmod comum.'],
+          ['ps aux', 'Ver processos.', 'Identifica serviços, usuários e comandos.', 'Processo root em path estranho é pista.', 'Linha de comando pode conter segredo.'],
+          ['ss -tulpn', 'Portas locais.', 'Mostra listeners e processos.', '127.0.0.1 indica serviço interno.', 'Alguns processos exigem root para mostrar nome.'],
+          ['cat /etc/crontab; ls -la /etc/cron.*', 'Checar tarefas agendadas.', 'Cron com script gravável vira vetor.', 'Veja usuário que executa e frequência.', 'Não altere sem backup em lab.'],
+          ['grep -R "password\\|pwd\\|secret\\|token" /home /opt /var/www 2>/dev/null', 'Buscar credenciais.', 'Config e backups guardam segredos.', 'Resultado com senha deve ser validado.', 'Pode gerar muito output.'],
+          ['find / -writable -type d 2>/dev/null | grep -v proc', 'Achar diretórios graváveis.', 'Importante para upload, cron e path hijack.', '/tmp é normal; /opt/app pode ser crítico.', 'Gravável não significa executado.'],
+          ['tail -f /var/log/auth.log', 'Monitorar autenticação.', 'Vê SSH/sudo em tempo real.', 'Falhas e logins aparecem com IP/usuário.', 'Nem toda distro usa auth.log.'],
+          ['journalctl -u ssh --since "1 hour ago"', 'Distro com systemd.', 'Filtra logs de serviço.', 'Mostra eventos recentes do SSH.', 'Permissões podem limitar leitura.'],
+          ['tar -czf coleta.tgz pasta/', 'Coletar evidências em lab.', 'Compacta arquivos para análise.', 'Gera pacote .tgz.', 'Não compacte dados sensíveis fora do escopo.'],
+        ]
+      }
+    }
+  },
+
+  // ==================== MANUAL DE COMANDOS - DIA 2 ====================
+  {
+    id: 'd2-manual-windows-events', title: 'Manual de Comandos — Windows Logs e PowerShell', day: 2, topic: 'Windows',
+    type: 'table',
+    content: {
+      table: {
+        headers: ['Comando', 'Quando usar', 'Por que usar', 'O que acontece / como ler', 'Cuidado'],
+        rows: [
+          ['Get-WinEvent -LogName Security -MaxEvents 20', 'Primeiro contato com log local.', 'Confirma acesso e formato dos eventos.', 'Mostra eventos recentes do Security.', 'Pode exigir admin para alguns logs.'],
+          ['Get-WinEvent -FilterHashtable @{LogName="Security"; Id=4625}', 'Investigar falhas de login.', 'Filtra no provedor, mais eficiente.', 'Eventos 4625 mostram usuário, origem e motivo.', 'Mensagens variam por idioma do Windows.'],
+          ['Get-WinEvent -FilterHashtable @{LogName="Security"; Id=4624}', 'Investigar logon bem-sucedido.', 'Confirma acesso real.', 'Leia LogonType, AccountName e IpAddress.', 'Tipo 3 é rede; tipo 10 é RDP.'],
+          ['Get-WinEvent -FilterHashtable @{LogName="Security"; Id=4672}', 'Ver logon admin.', 'Indica privilégios especiais.', 'Correlacione com 4624 próximo no tempo.', 'Serviços legítimos também geram 4672.'],
+          ['Get-WinEvent -FilterHashtable @{LogName="Security"; Id=4688}', 'Criação de processo auditada.', 'Mostra execução de comandos.', 'Leia NewProcessName e CommandLine se habilitada.', 'CommandLine pode não estar habilitada.'],
+          ['Get-WinEvent -LogName "Microsoft-Windows-Sysmon/Operational" -MaxEvents 50', 'Sysmon instalado.', 'Logs ricos de processo/rede/arquivo.', 'Eventos 1,3,11,22 são muito úteis.', 'Sem Sysmon, canal não existe.'],
+          ['Get-WinEvent -Path caso.evtx', 'Analisar log exportado.', 'Não precisa estar no host original.', 'Permite filtrar .evtx offline.', 'Preserve arquivo original.'],
+          ['wevtutil qe Security /q:"*[System[(EventID=4625)]]" /f:text /c:5', 'Ambiente sem PowerShell útil.', 'Ferramenta nativa antiga.', 'Exibe eventos filtrados por XPath.', 'Sintaxe XPath é sensível.'],
+          ['Get-Process | Sort-Object CPU -Descending | Select -First 10', 'Triagem de processos.', 'Acha consumo anormal.', 'Mostra processos mais ativos.', 'Alto CPU não prova malware.'],
+          ['Get-Service | Where-Object {$_.Status -eq "Running"}', 'Ver serviços rodando.', 'Serviço suspeito pode indicar persistência.', 'Nome, status e display name ajudam triagem.', 'Serviço legítimo pode ter nome estranho.'],
+          ['Get-ChildItem -Recurse -Force C:\\Users\\Public', 'Procurar arquivos em pasta comum.', 'Atacantes usam Public/Temp.', 'Lista arquivos ocultos e subpastas.', 'Recursão em C:\\ inteiro pode demorar muito.'],
+          ['Select-String -Path *.txt,*.config -Pattern "password","token","secret"', 'Buscar segredos em arquivos.', 'Config pode conter credenciais.', 'Retorna arquivo, linha e match.', 'Cuidado com volume e falsos positivos.'],
+        ]
+      }
+    }
+  },
+  {
+    id: 'd2-manual-ad-impacket', title: 'Manual de Comandos — Active Directory e Impacket', day: 2, topic: 'Active Directory',
+    type: 'table',
+    content: {
+      theory: [
+        'Comandos de AD devem seguir pré-requisitos. Primeiro descubra domínio e usuários; depois teste técnicas como AS-REP, Kerberoast e BloodHound em ambiente autorizado.',
+      ],
+      table: {
+        headers: ['Comando', 'Quando usar', 'Por que usar', 'O que acontece / como ler', 'Cuidado'],
+        rows: [
+          ['rpcclient -U "" -N <IP>', 'DC/RPC permitindo null session.', 'Tenta enumeração sem credencial.', 'Prompt rpcclient permite enumdomusers.', 'Nem todo DC permite.'],
+          ['enumdomusers', 'Dentro do rpcclient.', 'Lista usuários do domínio.', 'Retorna RID e username.', 'Salve lista limpa para roasting.'],
+          ['enumdomgroups', 'Dentro do rpcclient.', 'Lista grupos.', 'Ajuda a entender estrutura.', 'Não mostra todas as relações complexas.'],
+          ['ldapsearch -x -H ldap://<IP> -s base namingcontexts', 'LDAP aberto.', 'Descobre base DN.', 'Mostra DC=dominio,DC=local.', 'Pode exigir domínio/credencial.'],
+          ['GetNPUsers.py <domain>/ -usersfile users.txt -no-pass -dc-ip <IP> -outputfile asrep.txt', 'Tem lista de usuários e sem credencial.', 'Testa AS-REP Roasting.', 'Se vulnerável, salva hash Kerberos.', 'Hash ainda precisa quebrar offline.'],
+          ['hashcat -m 18200 asrep.txt rockyou.txt', 'Após AS-REP hash.', 'Tenta recuperar senha offline.', 'Mostra senha se wordlist cobrir.', 'Modo errado nunca quebra.'],
+          ['GetUserSPNs.py <domain>/<user>:<pass> -dc-ip <IP> -request -outputfile kerb.txt', 'Tem credencial válida.', 'Solicita TGS de contas com SPN.', 'Salva hash Kerberoast.', 'Conta de serviço pode ter senha forte.'],
+          ['hashcat -m 13100 kerb.txt rockyou.txt', 'Após Kerberoast.', 'Crack offline do TGS.', 'Senha recuperada permite novo acesso.', 'Pode demorar muito.'],
+          ['bloodhound-python -d <domain> -u <user> -p <pass> -ns <dc_ip> -c All', 'Com credencial válida.', 'Coleta relações AD.', 'Gera JSON para importar no BloodHound.', 'DNS e horário precisam estar corretos.'],
+          ['crackmapexec smb <IP> -d <domain> -u <user> -p <pass>', 'Validar credencial.', 'Confirma autenticação SMB.', 'Mostra status e às vezes Pwn3d.', 'Não faça spray em ambiente real.'],
+          ['crackmapexec smb <IP> -u <user> -p <pass> --shares', 'Credencial válida.', 'Lista shares por permissão.', 'READ/WRITE direciona coleta.', 'Pode bloquear conta se senha errada repetida.'],
+          ['evil-winrm -i <IP> -u <user> -p <pass>', 'WinRM aberto e credencial autorizada.', 'Abre shell PowerShell remoto.', 'Prompt remoto no host Windows.', 'Registra autenticação e comandos.'],
+          ['secretsdump.py <domain>/<user>:<pass>@<IP>', 'Quando tem permissão alta ou DCSync.', 'Extrai hashes via protocolos AD.', 'Pode retornar NTDS/hashes do domínio.', 'Impacto alto; somente lab autorizado.'],
+          ['psexec.py <domain>/<user>:<pass>@<IP>', 'Admin local em lab.', 'Execução remota via SMB service.', 'Shell como SYSTEM se permitido.', 'Muito ruidoso e cria serviço temporário.'],
+        ]
+      }
+    }
+  },
+  {
+    id: 'd2-manual-bloodhound-cme', title: 'Manual de Comandos — BloodHound, CME e Shares', day: 2, topic: 'Active Directory',
+    type: 'table',
+    content: {
+      table: {
+        headers: ['Comando', 'Quando usar', 'Por que usar', 'O que acontece / como ler', 'Cuidado'],
+        rows: [
+          ['bloodhound-python -d <domain> -u <user> -p <pass> -ns <dc_ip> -c DCOnly', 'Coleta inicial menor.', 'Menos volume que All.', 'Coleta dados do DC e domínio.', 'Pode perder sessões/local admin.'],
+          ['bloodhound-python -d <domain> -u <user> -p <pass> -ns <dc_ip> -c All', 'Coleta completa em lab.', 'Mapeia grupos, ACLs, sessões e trusts.', 'Importe JSON e busque caminhos.', 'Mais ruidoso e demorado.'],
+          ['crackmapexec smb <subnet>/24', 'Inventário em rede de lab.', 'Identifica hosts SMB.', 'Mostra hostname, domínio e signing.', 'Use apenas escopo autorizado.'],
+          ['crackmapexec smb <IP> --shares -u <user> -p <pass>', 'Após login válido.', 'Enumera shares acessíveis.', 'READ/WRITE definem próximos passos.', 'Não faça escrita sem necessidade.'],
+          ['crackmapexec smb <IP> --users -u <user> -p <pass>', 'Quer usuários via SMB/RPC.', 'Ajuda montar users.txt.', 'Lista contas quando permitido.', 'Pode falhar com baixa permissão.'],
+          ['crackmapexec smb <IP> --pass-pol -u <user> -p <pass>', 'Antes de spray em lab.', 'Ver política de senha.', 'Mostra lockout threshold e complexidade.', 'Não faça spray se lockout baixo.'],
+          ['smbmap -H <IP> -u <user> -p <pass>', 'Alternativa para shares.', 'Visualiza permissões por share.', 'READ/WRITE/NO ACCESS.', 'Resultado depende de credencial.'],
+          ['smbmap -H <IP> -u <user> -p <pass> -R <share>', 'Listagem recursiva de share.', 'Acha arquivos profundos.', 'Mostra árvore de diretórios.', 'Pode gerar muito output.'],
+          ['smbget -R smb://<IP>/<share> -U <user>', 'Baixar share recursivo.', 'Copia arquivos para análise local.', 'Pede senha e baixa conteúdo.', 'Organize em pasta do caso.'],
+          ['gpp-decrypt <cpassword>', 'Encontrou Groups.xml com cpassword.', 'Decifra senha GPP legada.', 'Retorna senha em claro.', 'GPP é legado; confirme origem do arquivo.'],
+        ]
+      }
+    }
+  },
+  {
+    id: 'd2-manual-forensics-disk-pcap', title: 'Manual de Comandos — Disco, PCAP e Evidências', day: 2, topic: 'Forense',
+    type: 'table',
+    content: {
+      table: {
+        headers: ['Comando', 'Quando usar', 'Por que usar', 'O que acontece / como ler', 'Cuidado'],
+        rows: [
+          ['sha256sum imagem.dd', 'Recebeu imagem forense.', 'Verifica integridade.', 'Hash deve bater com referência.', 'Nunca altere evidência original.'],
+          ['mmls imagem.dd', 'Imagem com partições.', 'Mostra layout e offsets.', 'Use offset para montar/analisar partição.', 'Offset é em setores.'],
+          ['fls -r imagem.dd', 'Listar arquivos via Sleuth Kit.', 'Enumera filesystem sem montar.', 'Mostra inodes e caminhos.', 'Use offset se houver partição.'],
+          ['icat imagem.dd <inode> > arquivo', 'Extrair arquivo por inode.', 'Recupera evidência específica.', 'Arquivo sai para análise local.', 'Inode errado extrai outro conteúdo.'],
+          ['foremost imagem.dd -o output/', 'File carving.', 'Recupera arquivos por assinatura.', 'Cria output por tipo de arquivo.', 'Não preserva sempre nome original.'],
+          ['exiftool arquivo', 'Metadados.', 'Lê datas, autor, câmera, software.', 'Mostra campos úteis de atribuição/timeline.', 'Metadado pode ser falsificado.'],
+          ['capinfos captura.pcap', 'Primeira visão de PCAP.', 'Mostra duração, pacotes e formato.', 'Ajuda dimensionar análise.', 'Não substitui inspeção de protocolo.'],
+          ['tshark -r captura.pcap -q -z io,phs', 'Resumo por protocolo.', 'Entende composição do tráfego.', 'Mostra hierarquia e percentuais.', 'Protocolos encapsulados podem confundir.'],
+          ['tshark -r captura.pcap -q -z conv,tcp', 'Ver conversas TCP.', 'Identifica maiores fluxos.', 'Lista endpoints, pacotes e bytes.', 'UDP precisa conv,udp.'],
+          ['tshark -r captura.pcap -Y "http.request" -T fields -e frame.time -e ip.src -e http.host -e http.request.uri', 'Extrair requests HTTP.', 'Gera timeline objetiva.', 'Mostra hora, origem, host e URI.', 'HTTPS não revela URI sem decryption.'],
+          ['tshark -r captura.pcap -Y "ftp.request.command == USER || ftp.request.command == PASS" -T fields -e ftp.request.command -e ftp.request.arg', 'Buscar credenciais FTP.', 'FTP usa texto claro.', 'Retorna USER e PASS.', 'Não publique senhas reais.'],
+          ['tcpdump -i tun0 host <IP> -w captura.pcap', 'Capturar tráfego de lab.', 'Gera PCAP para análise.', 'Arquivo abre no Wireshark.', 'Capture só escopo autorizado.'],
+        ]
+      }
+    }
+  },
+
+  // ==================== MANUAL DE COMANDOS - DIA 3 ====================
+  {
+    id: 'd3-manual-volatility', title: 'Manual de Comandos — Volatility 3', day: 3, topic: 'Forense',
+    type: 'table',
+    content: {
+      table: {
+        headers: ['Comando', 'Quando usar', 'Por que usar', 'O que acontece / como ler', 'Cuidado'],
+        rows: [
+          ['python3 vol.py -f mem.raw windows.info', 'Primeiro comando no dump.', 'Identifica sistema e símbolos.', 'Mostra kernel, build e camada.', 'Se falhar, dump/perfil pode estar ruim.'],
+          ['python3 vol.py -f mem.raw windows.pslist', 'Listar processos ativos.', 'Triagem básica.', 'Mostra PID, PPID, nome e horários.', 'Processo encerrado pode não aparecer.'],
+          ['python3 vol.py -f mem.raw windows.psscan', 'Suspeita de processo oculto/terminado.', 'Varre estruturas de processo na memória.', 'Pode achar processos não listados.', 'Mais falso positivo que pslist.'],
+          ['python3 vol.py -f mem.raw windows.pstree', 'Analisar relação pai-filho.', 'Detecta cadeia anômala.', 'Office -> cmd -> powershell é suspeito.', 'PPID pode ser reutilizado.'],
+          ['python3 vol.py -f mem.raw windows.cmdline', 'Ver argumentos de execução.', 'EncodedCommand e paths revelam intenção.', 'Mostra command line por PID.', 'Pode estar vazio em alguns casos.'],
+          ['python3 vol.py -f mem.raw windows.netscan', 'Investigar conexões.', 'Relaciona processo com rede.', 'Mostra local/remote IP, porta e PID.', 'Conexões antigas podem aparecer.'],
+          ['python3 vol.py -f mem.raw windows.dlllist --pid <PID>', 'Processo suspeito.', 'Lista DLLs carregadas.', 'Path temporário ou incomum é sinal.', 'Muitas DLLs legítimas.'],
+          ['python3 vol.py -f mem.raw windows.malfind', 'Suspeita de injeção.', 'Procura regiões RWX/MZ.', 'Retorna VADs suspeitos e bytes.', 'Confirme com contexto; pode ter falso positivo.'],
+          ['python3 vol.py -f mem.raw windows.filescan', 'Procurar arquivo em memória.', 'Acha handles/objetos de arquivo.', 'Mostra offsets físicos.', 'Muitos resultados; filtre com grep.'],
+          ['python3 vol.py -f mem.raw windows.dumpfiles --physaddr <offset>', 'Extrair arquivo achado.', 'Coleta evidência para análise.', 'Gera arquivo extraído.', 'Offset precisa vir de filescan.'],
+          ['python3 vol.py -f mem.raw windows.registry.hivelist', 'Analisar registry em memória.', 'Lista hives carregadas.', 'Mostra offsets de SAM/SYSTEM/NTUSER.', 'Nem todo hive está completo.'],
+          ['python3 vol.py -f mem.raw windows.hashdump', 'Credenciais locais em dump.', 'Extrai hashes quando possível.', 'Mostra usuários e hashes locais.', 'Acesso e versão podem impedir.'],
+        ]
+      }
+    }
+  },
+  {
+    id: 'd3-manual-malware-static', title: 'Manual de Comandos — Malware Estático e Binários', day: 3, topic: 'Malware',
+    type: 'table',
+    content: {
+      table: {
+        headers: ['Comando', 'Quando usar', 'Por que usar', 'O que acontece / como ler', 'Cuidado'],
+        rows: [
+          ['file amostra.bin', 'Primeiro comando em arquivo desconhecido.', 'Identifica tipo e arquitetura.', 'Mostra PE, ELF, script, archive etc.', 'Pode ser enganado por header falso.'],
+          ['sha256sum amostra.bin', 'Registrar IOC.', 'Hash identifica amostra.', 'Use em relatório e busca defensiva.', 'Hash muda se arquivo mudar 1 byte.'],
+          ['strings -a amostra.bin', 'Triagem estática.', 'Extrai texto ASCII.', 'URLs, comandos e paths aparecem.', 'Ofuscação pode esconder strings.'],
+          ['strings -el amostra.bin', 'Amostra Windows/Unicode.', 'Extrai UTF-16 little endian.', 'Pode revelar strings que -a não mostra.', 'Gera ruído.'],
+          ['grep -Ei "http|cmd.exe|powershell|token|password"', 'Filtrar strings suspeitas.', 'Foca IOCs e comportamento.', 'Mostra URLs, comandos e segredos.', 'Termos podem ser benignos.'],
+          ['xxd -l 256 amostra.bin', 'Olhar bytes iniciais.', 'Confirma magic bytes/header.', 'MZ, ELF, PK indicam formato.', 'Não interpreta binário completo.'],
+          ['readelf -h amostra.elf', 'Binário Linux ELF.', 'Lê cabeçalho.', 'Mostra arquitetura, entrypoint e tipo.', 'Só funciona em ELF.'],
+          ['readelf -s amostra.elf | head', 'Ver símbolos ELF.', 'Identifica funções/imports se não stripado.', 'Nomes podem indicar comportamento.', 'Binário stripped terá pouco dado.'],
+          ['objdump -d amostra.elf | head -80', 'Ver assembly inicial.', 'Triagem de fluxo.', 'Mostra instruções e chamadas.', 'Exige leitura de assembly.'],
+          ['binwalk amostra.bin', 'Suspeita de arquivo embutido.', 'Procura assinaturas internas.', 'Mostra offsets de arquivos comprimidos.', 'Assinatura não garante extração útil.'],
+          ['upx -t amostra.bin', 'Suspeita de UPX.', 'Testa packer UPX.', 'Informa se é empacotado.', 'Packer custom não aparece.'],
+          ['upx -d amostra.bin -o unpacked.bin', 'UPX confirmado em lab.', 'Desempacota para análise.', 'Gera binário mais legível.', 'Nunca execute amostra fora de sandbox.'],
+        ]
+      }
+    }
+  },
+  {
+    id: 'd3-manual-privesc', title: 'Manual de Comandos — Privesc Linux e Windows', day: 3, topic: 'Red Team',
+    type: 'table',
+    content: {
+      table: {
+        headers: ['Comando', 'Quando usar', 'Por que usar', 'O que acontece / como ler', 'Cuidado'],
+        rows: [
+          ['sudo -l', 'Shell Linux inicial.', 'Busca comandos permitidos como root.', 'NOPASSWD pode virar root via GTFOBins.', 'Pode exigir senha.'],
+          ['find / -perm -4000 -type f 2>/dev/null', 'Linux privesc.', 'Lista SUID.', 'Compare com lista padrão da distro.', 'SUID comum não é vulnerável sozinho.'],
+          ['getcap -r / 2>/dev/null', 'Linux privesc por capabilities.', 'Capabilities perigosas substituem SUID.', 'cap_setuid+ep em interpretador é crítico.', 'Nem toda capability é explorável.'],
+          ['cat /etc/crontab; ls -la /etc/cron.*', 'Suspeita de tarefa agendada.', 'Cron root executando script gravável é vetor.', 'Veja usuário, comando e frequência.', 'Não altere arquivo sem entender timing.'],
+          ['find / -writable -type f 2>/dev/null | grep -v proc', 'Procurar escrita indevida.', 'Arquivo gravável por usuário pode ser vetor.', 'Procure config/script executado por root.', 'Muitos resultados normais em /tmp.'],
+          ['whoami /priv', 'Shell Windows inicial.', 'Lista privilégios de token.', 'SeImpersonate/SeBackup são relevantes.', 'Disabled pode precisar contexto.'],
+          ['whoami /groups', 'Windows privesc.', 'Ver grupos privilegiados.', 'Backup Operators, Remote Management, Administrators importam.', 'Grupo não garante permissão em todo host.'],
+          ['systeminfo', 'Windows versão/patch.', 'Base para hipóteses de vulnerabilidade.', 'Mostra OS, hotfixes e arquitetura.', 'Exploit de kernel deve ser último recurso.'],
+          ['wmic qfe get Caption,Description,HotFixID,InstalledOn', 'Checar patches.', 'Confirma hotfixes instalados.', 'Ajuda descartar CVEs antigas.', 'wmic pode faltar em versões novas.'],
+          ['wmic service get name,displayname,pathname,startmode', 'Serviços Windows.', 'Busca path não aspado e binários.', 'Path com espaços sem aspas é pista.', 'Precisa verificar permissão de escrita.'],
+          ['sc qc <servico>', 'Inspecionar serviço específico.', 'Mostra binPath e conta de execução.', 'LocalSystem + path alterável é forte.', 'Não altere serviço sem plano de reversão em lab.'],
+          ['reg query HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\Installer /v AlwaysInstallElevated', 'Checar AlwaysInstallElevated.', 'Parte de vetor MSI.', 'Precisa HKLM e HKCU = 1.', 'Se só uma chave existe, não basta.'],
+          ['cmdkey /list', 'Credenciais salvas.', 'Pode indicar acesso a outro recurso.', 'Lista alvos com credenciais armazenadas.', 'Não mostra senha em claro.'],
+          ['netstat -ano', 'Portas/conexões Windows.', 'Acha serviços locais e conexões externas.', 'PID relaciona com tasklist.', 'Porta aberta não prova vulnerabilidade.'],
+        ]
+      }
+    }
+  },
+  {
+    id: 'd3-manual-ad-advanced', title: 'Manual de Comandos — AD Avançado em Labs', day: 3, topic: 'Active Directory',
+    type: 'table',
+    content: {
+      table: {
+        headers: ['Comando', 'Quando usar', 'Por que usar', 'O que acontece / como ler', 'Cuidado'],
+        rows: [
+          ['net rpc password <user> "<nova>" -U <domain>/<user>%<pass> -S <dc_ip>', 'BloodHound mostrou ForceChangePassword.', 'Altera senha de conta alvo sem saber a atual.', 'Se funcionar, você autentica como alvo.', 'Impacto alto; somente lab autorizado.'],
+          ['secretsdump.py -ntds ntds.dit -system SYSTEM LOCAL', 'Tem NTDS.dit e SYSTEM offline.', 'Extrai hashes do domínio offline.', 'Retorna hashes NTLM/Kerberos.', 'Proteja arquivos; são extremamente sensíveis.'],
+          ['diskshadow /s script.txt', 'SeBackupPrivilege em DC lab.', 'Cria shadow copy para copiar NTDS.', 'Volume shadow copy aparece para robocopy.', 'Comando altera estado do sistema.'],
+          ['robocopy /b <shadow_path> . ntds.dit', 'Após shadow copy.', 'Copia usando backup mode.', 'Extrai arquivo bloqueado.', 'Caminho precisa estar correto.'],
+          ['certipy find -u <user>@<domain> -p <pass> -dc-ip <IP> -vulnerable', 'ADCS suspeito.', 'Enumera templates vulneráveis.', 'Mostra ESC findings.', 'Depende de ADCS instalado.'],
+          ['certipy req -u <user>@<domain> -p <pass> -ca <CA> -template <template> -upn administrator@<domain>', 'Template vulnerável em lab.', 'Solicita certificado abusável.', 'Gera .pfx se permitido.', 'Impacto alto; só com evidência de ESC.'],
+          ['mssqlclient.py <domain>/<user>:<pass>@<IP> -windows-auth', 'MSSQL com auth Windows.', 'Acessa banco com credencial AD.', 'Prompt SQL permite enumeração.', 'Não execute comandos destrutivos.'],
+          ['enable_xp_cmdshell', 'MSSQL sysadmin em lab.', 'Habilita execução de comandos OS.', 'Permite xp_cmdshell.', 'Altíssimo impacto e ruidoso.'],
+          ['xp_cmdshell "whoami"', 'xp_cmdshell habilitado.', 'Confirma contexto do serviço SQL.', 'Retorna usuário do processo SQL.', 'Apenas lab autorizado.'],
+          ['responder -I tun0', 'Lab com coerção NTLM autorizada.', 'Captura NetNTLM quando host autentica.', 'Mostra hash NetNTLMv2.', 'Não use em rede real.'],
+          ['ntlmrelayx.py -tf targets.txt -smb2support', 'Lab de relay autorizado.', 'Repassa autenticação NTLM.', 'Pode obter sessão se signing/mitigações permitirem.', 'Técnica intrusiva; precisa escopo explícito.'],
+        ]
+      }
+    }
+  },
+
+  // ==================== MANUAL DE COMANDOS - DIA 4 ====================
+  {
+    id: 'd4-manual-hashcat-john', title: 'Manual de Comandos — Hashcat e John', day: 4, topic: 'Revisão',
+    type: 'table',
+    content: {
+      table: {
+        headers: ['Comando', 'Quando usar', 'Por que usar', 'O que acontece / como ler', 'Cuidado'],
+        rows: [
+          ['hashid hash.txt', 'Não sabe tipo de hash.', 'Sugere formatos prováveis.', 'Lista candidatos.', 'Não é certeza; valide pelo contexto.'],
+          ['hashcat --example-hashes | grep -i ntlm', 'Escolher modo.', 'Consulta exemplos oficiais.', 'Ajuda achar -m correto.', 'grep no Windows pode variar; use busca no arquivo.'],
+          ['hashcat -m 0 hash.txt rockyou.txt', 'MD5 simples.', 'Tenta wordlist contra MD5.', 'Mostra senha se quebrar.', 'MD5 pode ser outro formato parecido.'],
+          ['hashcat -m 1000 hash.txt rockyou.txt', 'NTLM Windows.', 'Quebra hash NTLM offline.', 'Resultado usuário:hash:senha ou hash:senha.', 'Não confundir com NetNTLMv2.'],
+          ['hashcat -m 5600 hash.txt rockyou.txt', 'NetNTLMv2 capturado.', 'Crack de desafio/resposta NTLMv2.', 'Senha aparece se wordlist cobre.', 'Não permite pass-the-hash direto.'],
+          ['hashcat -m 18200 asrep.txt rockyou.txt', 'AS-REP Roasting.', 'Modo correto para Kerberos AS-REP etype 23.', 'Recupera senha de usuário vulnerável.', 'Usuário pode ter senha forte.'],
+          ['hashcat -m 13100 kerb.txt rockyou.txt', 'Kerberoasting.', 'Modo TGS Kerberos etype 23.', 'Recupera senha da conta de serviço.', 'Arquivos grandes precisam GPU/tempo.'],
+          ['hashcat --show -m 1000 hash.txt', 'Ver hashes já quebrados.', 'Consulta potfile.', 'Mostra resultados anteriores.', 'Use mesmo modo -m.'],
+          ['hashcat -m 1000 hash.txt rockyou.txt -r rules/best64.rule', 'Wordlist com regra.', 'Gera variações comuns.', 'Aumenta chance de quebra.', 'Aumenta tempo.'],
+          ['john hash.txt --wordlist=rockyou.txt', 'Formato suportado pelo John.', 'Alternativa simples.', 'Mostra progresso e senhas.', 'Às vezes precisa converter hash.'],
+          ['john --show hash.txt', 'Mostrar senhas quebradas.', 'Consulta pot do John.', 'Exibe senha recuperada.', 'Precisa mesmo arquivo/formato.'],
+          ['zip2john arquivo.zip > zip.hash', 'ZIP protegido.', 'Converte para John.', 'Gera hash crackável.', 'Só para arquivos do lab/escopo.'],
+          ['john zip.hash --wordlist=rockyou.txt', 'Após zip2john.', 'Crack de senha ZIP.', 'Mostra senha se encontrada.', 'Não remove senha automaticamente.'],
+        ]
+      }
+    }
+  },
+  {
+    id: 'd4-manual-crypto-stego', title: 'Manual de Comandos — Crypto, Encoding e Stego', day: 4, topic: 'CTF',
+    type: 'table',
+    content: {
+      table: {
+        headers: ['Comando', 'Quando usar', 'Por que usar', 'O que acontece / como ler', 'Cuidado'],
+        rows: [
+          ['echo "SGVsbG8=" | base64 -d', 'Texto parece Base64.', 'Decodifica encoding comum.', 'Retorna texto/binário original.', 'Base64 não é criptografia.'],
+          ['echo -n "texto" | base64', 'Precisa codificar texto.', 'Gera Base64.', 'Saída pode ser usada em payload/lab.', 'Use -n para evitar newline.'],
+          ['echo "48656c6c6f" | xxd -r -p', 'Texto hexadecimal.', 'Converte hex para bytes.', 'Retorna conteúdo legível se for texto.', 'Hex inválido gera saída estranha.'],
+          ['echo -n "Hello" | xxd -p', 'Transformar texto em hex.', 'Útil para comparar bytes.', 'Mostra representação hexadecimal.', 'Não confunda com hash.'],
+          ['echo "Uryyb" | tr "A-Za-z" "N-ZA-Mn-za-m"', 'Suspeita de ROT13.', 'Decifra rotação 13.', 'Texto legível aparece se for ROT13.', 'Só funciona para alfabeto latino.'],
+          ['file imagem.png', 'Arquivo desconhecido.', 'Identifica tipo real.', 'Mostra PNG/JPEG/ZIP/etc.', 'Extensão pode mentir.'],
+          ['strings imagem.png | grep -i flag', 'CTF/stego simples.', 'Busca texto embutido.', 'Pode revelar flag ou pista.', 'Pode perder dados comprimidos.'],
+          ['exiftool imagem.jpg', 'Imagem com metadados.', 'Lê EXIF, autor, GPS, comentários.', 'Metadado pode conter pista.', 'Metadado pode ser falso.'],
+          ['steghide info imagem.jpg', 'Suspeita de steghide.', 'Verifica dado oculto.', 'Informa se há conteúdo e pede senha.', 'Não funciona em PNG.'],
+          ['steghide extract -sf imagem.jpg -p "<senha>"', 'Senha stego conhecida.', 'Extrai arquivo escondido.', 'Cria arquivo de saída.', 'Use apenas arquivos de desafio.'],
+          ['binwalk arquivo.bin', 'Suspeita de arquivo embutido.', 'Procura assinaturas.', 'Mostra offsets e tipos.', 'Assinatura não garante extração.'],
+          ['binwalk -e arquivo.bin', 'Quer extrair embutidos.', 'Tenta extrair automaticamente.', 'Cria pasta _arquivo.extracted.', 'Revise o que foi extraído.'],
+          ['foremost arquivo.dd -o output/', 'Carving em imagem/dump.', 'Recupera arquivos por assinatura.', 'Organiza por tipo.', 'Pode gerar muitos falsos positivos.'],
+          ['zsteg imagem.png', 'PNG/BMP com LSB suspeito.', 'Testa canais/bitplanes.', 'Mostra dados ocultos se houver.', 'Pode gerar muito ruído.'],
+        ]
+      }
+    }
+  },
+  {
+    id: 'd4-manual-reporting-evidence', title: 'Manual de Comandos — Evidência, Organização e Relatório', day: 4, topic: 'Revisão',
+    type: 'table',
+    content: {
+      table: {
+        headers: ['Comando', 'Quando usar', 'Por que usar', 'O que acontece / como ler', 'Cuidado'],
+        rows: [
+          ['mkdir -p caso/{scans,loot,pcap,notes,screenshots}', 'Início de lab/caso.', 'Organiza evidências.', 'Cria estrutura de pastas.', 'No PowerShell use New-Item equivalente.'],
+          ['script -a notes/terminal.log', 'Linux: registrar terminal.', 'Cria log de comandos e saídas.', 'Tudo fica no arquivo até exit.', 'Pode registrar senhas digitadas.'],
+          ['tee -a notes/comandos.txt', 'Salvar output e ver na tela.', 'Documenta sem perder feedback.', 'Comando envia saída para arquivo e terminal.', 'Use com cuidado para dados sensíveis.'],
+          ['date -u', 'Registrar horário UTC.', 'Padroniza timeline.', 'Mostra data/hora UTC.', 'Anote timezone se usar hora local.'],
+          ['sha256sum arquivo > arquivo.sha256', 'Registrar hash de evidência.', 'Prova integridade.', 'Cria arquivo com hash.', 'Recalcule após cópia.'],
+          ['find loot -type f -maxdepth 3 | sort', 'Inventário de arquivos coletados.', 'Saber o que foi baixado.', 'Lista arquivos organizados.', 'maxdepth pode esconder subpastas profundas.'],
+          ['grep -R "TODO\\|password\\|flag" loot notes 2>/dev/null', 'Revisar achados.', 'Busca termos importantes.', 'Mostra arquivos e linhas.', 'Não substitui leitura manual.'],
+          ['python3 -m http.server 8000', 'Servir arquivos em lab local.', 'Transferência simples para VM.', 'Abre HTTP na pasta atual.', 'Não rode em pasta com segredos fora do lab.'],
+          ['scp arquivo user@<IP>:/tmp/', 'Copiar arquivo via SSH.', 'Transferência autenticada.', 'Arquivo chega no destino.', 'Registra acesso SSH.'],
+          ['tar -czf evidencias.tgz scans loot notes', 'Empacotar entrega.', 'Agrupa evidências.', 'Cria arquivo compactado.', 'Revise conteúdo antes de compartilhar.'],
+          ['pandoc report.md -o report.pdf', 'Gerar PDF do relatório.', 'Converte Markdown para PDF.', 'Cria relatório final.', 'Exige pandoc/engine instalado.'],
+        ]
+      }
+    }
+  },
+];
+
+const baseSlides: Slide[] = [
   // ==================== DAY 1 ====================
   {
     id: 'd1-tcpip-theory', title: 'Redes TCP/IP — Fundamentos', day: 1, topic: 'Redes',
@@ -1137,3 +2642,5 @@ export const slides: Slide[] = [
     }
   },
 ];
+
+export const slides: Slide[] = [...intensiveSlides, ...expandedTheorySlides, ...tenHourWorkshopSlides, ...commandManualSlides, ...baseSlides];

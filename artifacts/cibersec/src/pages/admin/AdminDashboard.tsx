@@ -5,29 +5,29 @@ import { LogOut, BookOpen } from "lucide-react";
 const dayMeta = [
   {
     day: 1,
-    title: "Dia 1 — Fundamentos",
-    desc: "Redes TCP/IP, Nmap, HTTP, SSH, FTP, SMB, Linux, Windows Event IDs, Wireshark, Web",
+    title: "Dia 1 — Fundamentos Intensivos",
+    desc: "10h30: método, redes TCP/IP, Nmap profundo, HTTP, SSH, FTP, SMB, Linux, Windows Event IDs, Wireshark e Web",
     labs: ["Cap", "Nibbles", "Jerry", "Devel", "Blue", "Lame"],
     color: "#4a9e8a",
   },
   {
     day: 2,
-    title: "Dia 2 — Intermediário",
-    desc: "Wazuh, Windows Logs, Sysmon, Active Directory, Forense de Disco, PCAP",
+    title: "Dia 2 — Intermediário Intensivo",
+    desc: "10h30: Wazuh, Windows Logs, Sysmon, Active Directory, Kerberos, Forense de Disco e PCAP",
     labs: ["Forest", "Sauna", "Active", "Monteverde", "Cascade", "Cronos"],
     color: "#6a8ecb",
   },
   {
     day: 3,
-    title: "Dia 3 — Avançado",
-    desc: "Volatility, Análise de Malware, MITRE ATT&CK, Privilege Escalation",
+    title: "Dia 3 — Avançado Intensivo",
+    desc: "10h30: Volatility, análise de malware, MITRE ATT&CK, privilege escalation e AD avançado",
     labs: ["Blackfield", "Sizzle", "Querier", "Mantis", "Reel2", "Multimaster"],
     color: "#d4913a",
   },
   {
     day: 4,
-    title: "Dia 4 — Revisão Final",
-    desc: "Checklist de incidente, Cheat Sheet, Relatório, Speed Runs com cronômetro",
+    title: "Dia 4 — Revisão e Simulado",
+    desc: "10h30: checklist de incidente, comandos explicados, relatório, simulados e speed runs com cronômetro",
     labs: ["Speed runs — todas as máquinas anteriores"],
     color: "#888",
   },
@@ -111,7 +111,7 @@ export default function AdminDashboard() {
             Painel do Professor
           </h1>
           <p style={{ color: "#666", fontSize: "0.88rem", lineHeight: 1.6, maxWidth: 560 }}>
-            Aqui estão os roteiros de cada dia, objetivos por bloco, perguntas para a turma e soluções didáticas dos labs. Este conteúdo é exclusivo para o professor.
+            Aqui estão os roteiros de 10h+ por dia, objetivos por bloco, perguntas para a turma, exercícios de fixação e soluções didáticas dos labs. Este conteúdo é exclusivo para o professor.
           </p>
         </div>
 
@@ -129,7 +129,7 @@ export default function AdminDashboard() {
           </h2>
           <ul style={{ margin: 0, paddingLeft: 0, listStyle: "none" }}>
             {[
-              "Cada dia tem um roteiro com blocos matutino, vespertino e noturno.",
+              "Cada dia tem um roteiro mínimo de 10h30 com teoria, prática, labs e entregas obrigatórias.",
               "Os blocos incluem objetivos, instruções de condução, perguntas para a turma e respostas esperadas.",
               "As soluções dos labs são detalhadas — apresente somente no debrief, nunca antes.",
               "Os alunos veem apenas o conteúdo da area de estudo (/). Este painel não é acessível por eles.",

@@ -244,6 +244,25 @@ function ChecklistSlide({ slide }: { slide: Slide }) {
 
   return (
     <div>
+      {slide.content.theory && (
+        <ul style={{ paddingLeft: 0, listStyle: "none", margin: "0 0 18px 0" }}>
+          {slide.content.theory.map((item, i) => (
+            <li
+              key={i}
+              style={{
+                color: "#c0c0c0",
+                fontSize: "0.95rem",
+                marginBottom: 10,
+                paddingLeft: 16,
+                borderLeft: "2px solid #1e1e1e",
+                lineHeight: 1.65,
+              }}
+            >
+              {item}
+            </li>
+          ))}
+        </ul>
+      )}
       <div style={{ marginBottom: 16, fontSize: "0.75rem", color: "#555", fontFamily: "monospace" }}>
         {doneCount}/{total} respondidas
       </div>
@@ -281,6 +300,25 @@ function ChecklistSlide({ slide }: { slide: Slide }) {
           </span>
         </label>
       ))}
+      {slide.content.tips && (
+        <div style={{ marginTop: 18 }}>
+          {slide.content.tips.map((tip, i) => (
+            <div
+              key={i}
+              style={{
+                padding: "10px 12px",
+                background: "#0d0d0d",
+                border: "1px solid #1a1a1a",
+                color: "#888",
+                fontSize: "0.86rem",
+                lineHeight: 1.55,
+              }}
+            >
+              {tip}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

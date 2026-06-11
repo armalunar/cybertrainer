@@ -1,5 +1,6 @@
 import CountdownTimer from "./CountdownTimer";
 import type { Lab } from "@/data/courseData";
+import { ExternalLink } from "lucide-react";
 
 const difficultyColor: Record<string, string> = {
   Easy: "#4a9e8a",
@@ -12,7 +13,14 @@ interface LabCardProps {
   lab: Lab;
 }
 
+function getHackTheBoxMachineUrl(lab: Lab) {
+  const machineName = lab.name.replace(/\s*\(.+\)\s*$/, "").trim();
+  return `https://app.hackthebox.com/machines/${encodeURIComponent(machineName)}`;
+}
+
 export default function LabCard({ lab }: LabCardProps) {
+  const hackTheBoxUrl = getHackTheBoxMachineUrl(lab);
+
   return (
     <div
       style={{
@@ -93,6 +101,27 @@ export default function LabCard({ lab }: LabCardProps) {
       <p style={{ color: "#888", fontSize: "0.88rem", lineHeight: 1.6, margin: "0 0 12px 0" }}>
         {lab.description}
       </p>
+
+      <a
+        href={hackTheBoxUrl}
+        target="_blank"
+        rel="noreferrer"
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 7,
+          color: "#0a0a0a",
+          background: "#4a9e8a",
+          border: "1px solid #4a9e8a",
+          padding: "7px 11px",
+          fontSize: "0.78rem",
+          fontWeight: 700,
+          textDecoration: "none",
+          marginBottom: 14,
+        }}
+      >
+        Abrir no Hack The Box <ExternalLink size={13} />
+      </a>
 
       <div style={{ marginBottom: 12 }}>
         <span style={{ color: "#555", fontSize: "0.72rem", textTransform: "uppercase", letterSpacing: "0.06em" }}>
